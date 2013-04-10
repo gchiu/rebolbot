@@ -1,0 +1,9 @@
+0.0.33
+- first wave of bot modularization is in - commands are modules
+- commands can be enabled/disabled at runtime
+
+0.0.31
+- rebolbot now uses a safer http read for tryrebol 
+
+0.0.27
+- many new commands - find, present?
