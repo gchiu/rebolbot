@@ -1,8 +1,8 @@
 Rebol [
 	file: %rebolbot.r3
-	author: "Graham, Adrian"
-	date: [28-Feb-2013 10-Apr-2013] ; leave this as a block plz!  It's used by version command
-	version: 0.0.33
+	author: [ "Graham Chiu" "Adrian Sampaleanu" ]
+	date: [28-Feb-2013 11-Apr-2013] ; leave this as a block plz!  It's used by version command
+	version: 0.1.0
 	purpose: {Perform useful, automated actions in Stackoverflow chat rooms}
 	Notes: {You'll need to capture your own cookie and fkey using wireshark or similar.}
 	License: 'Apache2
@@ -356,7 +356,7 @@ forever [
 		call-command-pulse
 	]
 	sync-commands
-	wait lib/pause-period
+	attempt [ wait lib/pause-period ]
 ]
 
 halt
