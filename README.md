@@ -33,7 +33,7 @@ If you'd like to use this bot to evaluate code in an arbitrary programming langu
 
 Keep in mind that this bot is very young (only about a week now) so you can still expect some rough edges to show themselves here and there. Again, you are welcome to drop by the Rebol chat room and discuss the script in general, or have us try to help with customizing it for your needs. 
 
-[Rebol][7] (and [Red][8]) - keepin' it simple!
+[Rebol][5] (and [Red][6]) - keepin' it simple!
 
 ###Installation
 - Clone this repo and get yourself a Rebol binary (just one file) for your platform of choice. 
