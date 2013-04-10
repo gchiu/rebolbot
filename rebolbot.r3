@@ -1,6 +1,6 @@
 Rebol [
 	file: %rebolbot.r3
-	author: "Graham"
+	author: "Graham, Adrian"
 	date: [28-Feb-2013 10-Apr-2013] ; leave this as a block plz!  It's used by version command
 	version: 0.0.33
 	purpose: {Perform useful, automated actions in Stackoverflow chat rooms}
