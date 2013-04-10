@@ -19,13 +19,13 @@ Rebol [
 system/options/default-suffix: %.r3
 command-dir: %commands/
 
-sync-commands: func [] [
+do sync-commands: func [] [
 	clear head lib/commands: []
 	foreach command read command-dir [
 		append lib/commands cmd: import/no-lib rejoin [command-dir command]
 	]
 ]
-sync-commands
+; sync-commands
 
 if not value? 'shrink [
 	shrink: load http://www.rebol.org/download-a-script.r?script-name=shrink.r
@@ -90,7 +90,7 @@ delete-url: [so-chat-url 'messages "/" (lib/parent-id) "/" 'delete]
 lib/id-rule: charset [#"0" - #"9"]
 non-space: complement space: charset #" "
 
-percent-encode: func [char [char!]] [
+lib/percent-encode: func [char [char!]] [
 	char: enbase/base to-binary char 16
 	parse char [
 		copy char some [char: 2 skip (insert char "%") skip]
@@ -104,7 +104,7 @@ lib/url-encode: use [ch mk] [
 		either parse/all text: form text [
 			any [
 				some ch | end | change " " "+" |
-				mk: (mk: percent-encode mk/1)
+				mk: (mk: lib/percent-encode mk/1)
 				change skip mk
 			]
 		] [to-string text] [""]
@@ -328,11 +328,6 @@ forever [
 				print "parsed"
 			] [print "failed"]
 			content: trim decode-xml content
-			; ?? content
-			; ?? lib/user-name
-			; ?? lib/person-id
-			; ?? message-no
-			; ?? lastmessage-no
 			; new message?
 			if message-no > lastmessage-no [
 				print "New message"
