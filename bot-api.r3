@@ -52,6 +52,7 @@ no-of-messages: none
 chat-length-limit: none
 
 ; Users who have special privileges with the bot (e.g. remove keys)
+; privileged-users: ["HostileFork" 211160 "Graham Chiu" 76852]
 privileged-users: []
 
 ; Mapping of username to info-link + timezone
