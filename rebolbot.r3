@@ -25,7 +25,6 @@ do sync-commands: func [] [
 		append lib/commands cmd: import/no-lib rejoin [command-dir command]
 	]
 ]
-; sync-commands
 
 if not value? 'shrink [
 	shrink: load http://www.rebol.org/download-a-script.r?script-name=shrink.r
