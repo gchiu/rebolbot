@@ -7,12 +7,12 @@ Needs: [bot-api 1.0.0]
 Options: [private]
 ]
 
-help-string: {carls-blog "command to display new comments from rebol.com/blog.r"}
+help-string: {carls-blog last updated "when did we last check for new comments from rebol.com/blog.r"}
 
 last-updated-file: %blog-last-updated.r3
 
 dialect-rule: [
-  'carls-blog 'last 'updated (
+  'carls-blog (
     done: true
     reply message-id reform [
       "I last checked Carl's blog for new comments on"
@@ -22,7 +22,6 @@ dialect-rule: [
       ]
     ]
   )
-  | 'carls-blog 'update 'from copy last-updated date!
 ]
 
 process-blog: funct [
@@ -40,7 +39,6 @@ process-blog: funct [
   datetime: copy ""
   name: copy ""
   
-  last-updated: any [ attempt [ load last-updated-file ] (now + diff-to-localtime) ]
   attempt [
     article-rule: [
       {<tr><td colspan=2><b><a href="} copy article-link to {">} thru {">} copy article to </a>
@@ -59,6 +57,7 @@ process-blog: funct [
       (append last blog-comment-data to-string comment-content)
     ]
     blog: read http://www.rebol.com/cgi-bin/blog.r?cmt-week=1
+
     parse blog [
       any [
         article-rule
@@ -68,6 +67,8 @@ process-blog: funct [
         | skip
       ]
     ]
+
+    last-updated: any [ attempt [ load last-updated-file ] (now + diff-to-localtime) ]
     foreach [ article article-link comments ] blog-comment-data [
       foreach [ name datetime comment-content ] comments  [
         if positive? (difference (datetime + diff-to-localtime) last-updated) [
@@ -75,7 +76,7 @@ process-blog: funct [
           remove-each tag comment-content: decode 'markup to binary! comment-content [tag? tag]
           comment-content: head clear skip reform comment-content comment-length
           comment-content: copy/part comment-content any [ find/last comment-content " " length? comment-content ]
-          lib/speak reform [ name "-" article ":" comment-content "..." join base-article-link (to string! article-link) ]
+          lib/speak reform [ name "-" article comment-content "..." join base-article-link (to string! article-link) ]
         ]
       ]
     ]
