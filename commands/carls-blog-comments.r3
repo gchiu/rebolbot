@@ -59,13 +59,7 @@ process-blog: funct [
     blog: read http://www.rebol.com/cgi-bin/blog.r?cmt-week=1
 
     parse blog [
-      any [
-        article-rule
-        | name-rule
-        | datetime-rule
-        | comment-rule
-        | skip
-      ]
+      any [ article-rule | name-rule | datetime-rule | comment-rule | skip ]
     ]
 
     last-updated: any [ attempt [ load last-updated-file ] (now + diff-to-localtime) ]
