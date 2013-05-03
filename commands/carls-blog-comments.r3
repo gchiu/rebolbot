@@ -12,7 +12,7 @@ help-string: {carls-blog last updated "when did we last check for new comments f
 last-updated-file: %blog-last-updated.r3
 
 dialect-rule: [
-  'carls-blog (
+  [ 'carls | 'carl | 'carl's ]  'blog (
     done: true
     reply message-id reform [
       "I last checked Carl's blog for new comments on"
