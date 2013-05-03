@@ -2,12 +2,12 @@ REBOL [
 Title: "Display Carl's blog comments"
 Name: carls-blog-comments
 Type: module
-Version: 1.0.0
+Version: 1.0.1
 Needs: [bot-api 1.0.0]
 Options: [private]
 ]
 
-help-string: {carls-blog last updated "when did we last check for new comments from rebol.com/blog.r"}
+help-string: {Carl's blog "when did we last check for new comments from rebol.com/blog.r"}
 
 last-updated-file: %blog-last-updated.r3
 
