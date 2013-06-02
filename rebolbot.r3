@@ -1,8 +1,8 @@
 Rebol [
 	file: %rebolbot.r3
 	author: [ "Graham Chiu" "Adrian Sampaleanu" ]
-	date: [28-Feb-2013 11-Apr-2013] ; leave this as a block plz!  It's used by version command
-	version: 0.1.0
+	date: [28-Feb-2013 11-Apr-2013 2-June-2013] ; leave this as a block plz!  It's used by version command
+	version: 0.1.1
 	purpose: {Perform useful, automated actions in Stackoverflow chat rooms}
 	Notes: {You'll need to capture your own cookie and fkey using wireshark or similar.}
 	License: 'Apache2
@@ -41,6 +41,7 @@ either exists? %bot-config.r [
 	room-id: bot-config/room-id
 	room-descriptor: bot-config/room-descriptor
 	lib/greet-message: bot-config/greet-message
+	lib/low-rep-message: bot-config/low-rep-message
 	bot-cookie: bot-config/bot-cookie
 	bot-fkey: bot-config/bot-fkey
 ] [
@@ -48,6 +49,7 @@ either exists? %bot-config.r [
 	room-id: 0 
 	room-descriptor: "-- room name --"
 	lib/greet-message: "-- set my welcome message --"
+	lib/low-rep-message: "-- set my low reputation message --"
 	bot-cookie: "-- get your own --"
 	bot-fkey: "-- get your own"
 ]
@@ -80,6 +82,7 @@ if exists? last-message-file [
 ?? lastmessage-no
 
 so-chat-url: http://chat.stackoverflow.com/
+profile-url: http://stackoverflow.com/users/
 chat-target-url: rejoin write-chat-block: [so-chat-url 'chats "/" room-id "/" 'messages/new]
 lib/referrer-url: rejoin [so-chat-url 'rooms "/" room-id "/" room-descriptor]
 lib/html-url: rejoin [lib/referrer-url "?highlights=false"]
