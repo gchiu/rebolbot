@@ -20,6 +20,7 @@ REBOL [
 		message-id
 		no-of-messages
 		parent-id
+		person
 		person-id
 		pause-period
 		percent-encode

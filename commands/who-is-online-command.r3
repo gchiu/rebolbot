@@ -34,7 +34,7 @@ either not exists? visitors-file [
 ;; Scan the html page, check to see who is here, and send a greet message to new users
 who-is-online: func [message-id
 	/silent ; silent is used by the forever loop to update the users online
-	/local out page username userid len newbies addressees reputation rpage hi-rep-message
+	/local out page username userid len newbies addressees reputation rpage hi-rep-message err
 ] [
 	addressees: copy ""
 	len: length? visitors
@@ -43,9 +43,9 @@ who-is-online: func [message-id
 	page: to string! read html-url
 	parse page [
 		some [
-			thru "chat.sidebar.loadUser(" copy userid some id-rule thru {("} copy username to {")}
+			thru "chat.sidebar.loadUser(" copy userid some id-rule thru "(" copy username [{"} thru {"}] ")"
 			(trim/all username
-				; username: decode-xml username
+				username: load-json username
 				append out username
 				if not find visitors username [
 					append visitors username
@@ -68,7 +68,7 @@ who-is-online: func [message-id
 					;;append addressees ajoin [ "@" person " " ]
 					reputation: 0
 					hi-rep-message: copy greet-message
-					attempt [
+					if error? set/any 'err try [
 						rpage: to string! read rejoin [ profile-url person/2 "/" person/1 ]
 						if parse rpage [ thru <span class="reputation-score"> copy reputation to </span> to end ][
 							either 20 > to integer! replace/all reputation "," "" [
@@ -77,6 +77,8 @@ who-is-online: func [message-id
 								append hi-rep-message ajoin [ " Cool, you have a reputation score of " reputation " and so can chat to us!" ]
 							]
 						]					
+					][
+						speak mold err					
 					]
 					speak ajoin [ "@" person/1 " " hi-rep-message ]
 					wait 1
