@@ -17,21 +17,21 @@ expression: findstring: none
 
 dialect-rule: [
 	; save-key-rule
-	['save copy expression to end (done: true save-key message-id expression)] |
+	['save copy expression to end (done: true save-key expression)] |
 	; list keys
-	['keys (done: true show-keys message-id)] |
+	['keys (done: true show-keys)] |
 	 ; remove-key-rule
 	[
 		'remove copy expression to end (
 			done: true
-			remove-key message-id person person-id form expression privileged-users
+			remove-key form expression
 		)
 	] |
 	; find-string-rule
 	[
 		'find [set findstring string! | set findstring word!] (
 			done: true
-			find-in-links message-id form findstring
+			find-in-links form findstring
 		)
 	]
 ]
@@ -45,7 +45,7 @@ if exists? expressions [
 	bot-expressions: load expressions
 ]
 
-save-key: func [message-id content [string! block!] /local exp err] [
+save-key: func [content [string! block!] /local exp err] [
 	if error? err: try [
 		exp: to block! content
 		?? exp
@@ -75,7 +75,7 @@ save-key: func [message-id content [string! block!] /local exp err] [
 	]
 ]
 
-show-keys: func [message-id /local tmp out] [
+show-keys: func [/local tmp out] [
 	tmp: copy [] out: copy ""
 	foreach [key data] bot-expressions [
 		repend tmp [key data/1]
@@ -87,10 +87,10 @@ show-keys: func [message-id /local tmp out] [
 	reply message-id compose ["I know the following keys: ^/" (out)]
 ]
 
-remove-key: func [message-id person person-id [integer!] content users [block!]
+remove-key: func [content
 	/local rec
 ] [
-	either find users person-id [
+	either find privileged-users person-id [
 		; privileged user
 		either rec: find bot-expressions content [
 			remove/part rec 2
@@ -100,11 +100,11 @@ remove-key: func [message-id person person-id [integer!] content users [block!]
 			reply message-id [content " not found in my keys"]
 		]
 	] [
-		reply message-id ["Sorry, " person " you don't have the privileges yet to remove the key " content]
+		reply message-id ["Sorry, " user-name " you don't have the privileges yet to remove the key " content]
 	]
 ]
 
-find-in-links: func [message-id findstring
+find-in-links: func [findstring
 	/local out used link
 ] [
 	either 3 > length? findstring [

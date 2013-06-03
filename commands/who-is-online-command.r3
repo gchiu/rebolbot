@@ -9,7 +9,7 @@ REBOL [
 
 help-string: {present[?] "prints users currently online"}
 
-dialect-rule: [['present | 'present?] (done: true who-is-online message-id)]
+dialect-rule: [['present | 'present?] (done: true who-is-online)]
 
 ;; The implementation in this module is specific to SO chat. When the specific chat 
 ;; connectivity is factored out into its own module, this code should be changed to
@@ -32,7 +32,7 @@ either not exists? visitors-file [
 ]
 
 ;; Scan the html page, check to see who is here, and send a greet message to new users
-who-is-online: func [message-id
+who-is-online: func [
 	/silent ; silent is used by the forever loop to update the users online
 	/local out page username userid len newbies addressees reputation rpage hi-rep-message err
 ] [

@@ -8,7 +8,7 @@ REBOL [
 ]
 
 help-string: 
-{show links [ like url ] "shows saved links"
+{show (me|all) links [ like url ] "shows saved links (like url, if provided)"
 show me your youtube videos "shows saved youtube videos"}
 
 show-urls: similar: youtube: none
@@ -26,15 +26,15 @@ show-selected: does [
 	done: any [similar show-urls youtube]
 	case [
 		similar [
-			show-similar-links message-id links
+			show-similar-links links
 		]
 		show-urls [
-			show-all-links message-id
+			show-all-links
 		]
 		youtube [
-			show-similar-links message-id https://www.youtube.com
+			show-similar-links https://www.youtube.com
 			wait 2
-			show-similar-links message-id http://www.youtube.com
+			show-similar-links http://www.youtube.com
 		]
 	]
 
@@ -43,7 +43,7 @@ show-selected: does [
 ; SO chat has a 500 character limit for messages with active links
 ; so let's send in 500 ( chat-length-limit ) char chunks
 ; this should be a refinement of show-similar-links
-show-all-links: func [message-id /local out link used] [
+show-all-links: func [/local out link used] [
 	out: copy ""
 	used: copy []
 	foreach [key data] bot-expressions [
@@ -63,7 +63,7 @@ show-all-links: func [message-id /local out link used] [
 	reply message-id out
 ]
 
-show-similar-links: func [message-id links /local out link tot used] [
+show-similar-links: func [links /local out link tot used] [
 	print "in the simlar links function now"
 	out: copy ""
 	used: copy []

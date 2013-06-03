@@ -213,7 +213,7 @@ lib/reply: func [message-id text [string! block!]] [
 	lib/speak ajoin [":" message-id " " text]
 ]
 
-process-dialect: funct [message-id person person-id expression
+process-dialect: funct [expression
 ] [
 	default-rule: [
 		; default .. checks for a word and sends it to the check-keys
@@ -224,7 +224,7 @@ process-dialect: funct [message-id person person-id expression
 			] [
 				recipient: copy ""
 			]
-			process-key-search lib/message-id trim ajoin [?? search-key " " ?? recipient]
+			process-key-search trim ajoin [?? search-key " " ?? recipient]
 		)
 	]
 
@@ -255,7 +255,7 @@ process-dialect: funct [message-id person person-id expression
 	]
 ]
 
-process-key-search: func [message-id expression
+process-key-search: func [expression
 	/local understood search-key person
 ] [
 	understood: false
@@ -284,7 +284,7 @@ bot-cmd-rule: [
 	[
 		copy key to end (
 			; process-key-search message-id trim key
-			process-dialect lib/message-id lib/user-name lib/person-id key
+			process-dialect key
 		)
 	]
 ]

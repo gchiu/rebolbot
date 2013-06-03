@@ -9,6 +9,6 @@ REBOL [
 
 help-string: {what is the time?}
 
-dialect-rule: ['what 'is 'the ['time | 'time?] opt ['now? | 'now | 'in 'GMT] (done: true reply-time message-id)]
+dialect-rule: ['what 'is 'the ['time | 'time?] opt ['now? | 'now | 'in 'GMT] (done: true reply-time)]
 
-reply-time: func [message-id] [reply message-id to-idate now]
+reply-time: func [message-id] [reply to-idate now]

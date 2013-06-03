@@ -16,11 +16,11 @@ REBOL [
 		header
 		html-url
 		id-rule
+		low-rep-message
 		max-scan-messages
 		message-id
 		no-of-messages
 		parent-id
-		person
 		person-id
 		pause-period
 		percent-encode
@@ -37,6 +37,8 @@ REBOL [
 	]
 ]
 
+; The name of the bot
+; Configured in bot-config.r
 botname: none
 
 ; The command modules loaded by the bot
@@ -45,6 +47,11 @@ commands: []
 ; The message new users will be greeted with
 ; Configured in bot-config.r
 greet-message: ""
+
+; The message new users with a reputation lower than 20
+; will be greeted with.
+; Configured in bot-config.r
+low-rep-message: ""
 
 ; The number of messages to fetch at a time
 no-of-messages: none

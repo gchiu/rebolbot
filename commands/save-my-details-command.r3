@@ -17,10 +17,10 @@ dialect-rule: [
 	)
 	'save 'my 'details set user-url url! (
 		?? user-url
-		add-user-details message-id lib/user-name user-url none
+		add-user-details user-url none
 		done: true
 	) set user-timezone time! (
-		add-user-details message-id lib/user-name user-url user-timezone
+		add-user-details user-url user-timezone
 	)
 ]
 
@@ -50,11 +50,11 @@ either exists? notable-persons-file [
 	about-users: copy was-about-users
 ]
 
-add-user-details: func [message-id person user-url timezone [time! none!]
+add-user-details: func [user-url timezone [time! none!]
 	/local rec
 ] [
 	attempt [
-		person: to word! person
+		person: to word! user-name
 		if rec: find about-users person [
 			remove/part rec 2
 		]

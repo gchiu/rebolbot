@@ -7,14 +7,14 @@ REBOL [
 	Options: [private]
 ]
 
-help-string: {show [all ][ recent ] links by user "shows links posted in messages by user"}
+help-string: {show [ me ][ recent ] links (by|from) user "shows links posted in messages by user"}
 
 username: none
 
 dialect-rule: [
 	opt 'show opt 'me opt 'recent 'links ['by | 'from] [set username word! | set username string!] (
 		done: true
-		find-links-by message-id max-scan-messages username
+		find-links-by max-scan-messages username
 	)
 ]
 
@@ -36,7 +36,7 @@ read-messages-by: func [n username
 	wanted
 ]
 
-find-links-by: func [message-id n username
+find-links-by: func [n username
 	/local result links link ilink text payload
 ] [
 	links: copy []
