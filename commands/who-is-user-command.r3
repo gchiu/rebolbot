@@ -13,11 +13,11 @@ user: none
 
 dialect-rule: [
 	[some ['who 'is | 'whois | 'who 'the 'dickens 'is] copy user to end
-	] (if found? user [show-user-page message-id user/1 lib/user-name] done: true)
+	] (if found? user [show-user-page user/1 lib/user-name] done: true)
 ]
 
 ; person is the one asking the question
-show-user-page: func [message-id user person /local data known timezone gmt err] [
+show-user-page: func [user person /local data known timezone gmt err] [
 	gmt: now
 	gmt/zone: 0:00
 	gmt: gmt - now/zone

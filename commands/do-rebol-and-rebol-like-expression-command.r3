@@ -16,7 +16,7 @@ dialect-rule: [
 		["/x" | 'do] copy expression to end
 		(done: true
 			attempt [
-				evaluate-expression message-id mold/only expression
+				evaluate-expression mold/only expression
 			]
 		)
 	] |
@@ -24,7 +24,7 @@ dialect-rule: [
 		['do/2 | 'do/rebol2] copy expression to end
 		(done: true
 			attempt [
-				evaluate-expression/r2 message-id mold/only expression
+				evaluate-expression/r2 mold/only expression
 			]
 		)
 	] |
@@ -32,7 +32,7 @@ dialect-rule: [
 		'do/boron copy expression to end
 		(done: true
 			attempt [
-				evaluate-expression/boron message-id mold/only expression
+				evaluate-expression/boron mold/only expression
 			]
 		)
 	] |
@@ -40,14 +40,14 @@ dialect-rule: [
 		'do/red copy expression to end
 		(done: true
 			attempt [
-				evaluate-expression/red message-id mold/only expression
+				evaluate-expression/red mold/only expression
 			]
 		)
 	] |
 	[ ; read-raw-rule
 		'read 'raw set target url! (
 			done: true
-			raw-read message-id target
+			raw-read target
 		)
 	]
 ]
@@ -104,7 +104,7 @@ $code}
 	]
 ]
 
-raw-read: func [ message-id target [url!]
+raw-read: func [target [url!]
 	/local result err
 ][
 	if error? set/any 'err try [
@@ -118,7 +118,7 @@ raw-read: func [ message-id target [url!]
 	]
 ]
 
-extract-http-response: func [ http-text [string!]
+extract-http-response: func [http-text [string!]
 	/local result code bodytext server-code
 ][
 	digit: charset [ #"0" - #"9" ]
@@ -130,7 +130,7 @@ extract-http-response: func [ http-text [string!]
 	]
 ]
 
-evaluate-expression: func [message-id expression
+evaluate-expression: func [expression
 	/r2 "rebol2"
 	/boron "boron"
 	/red "RED"

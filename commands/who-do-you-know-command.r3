@@ -9,9 +9,9 @@ REBOL [
 
 help-string: {who do you know "returns a list of all known users"}
 
-dialect-rule: ['who 'do 'you ['know | 'know?] (show-all-users message-id done: true)]
+dialect-rule: ['who 'do 'you ['know | 'know?] (show-all-users done: true)]
 
-show-all-users: func [message-id
+show-all-users: func [
 	/local tmp
 ] [
 	tmp: copy []

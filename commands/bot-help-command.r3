@@ -9,9 +9,9 @@ REBOL [
 
 help-string: {help "this help"}
 
-dialect-rule: ['help (done: true provide-help message-id)]
+dialect-rule: ['help (done: true provide-help)]
 
-provide-help: func [message-id] [
+provide-help: func [] [
 	reply message-id rejoin [{I respond to these commands:} newline
 		sort/skip collect [foreach command commands [keep command/help-string keep newline]] 2
 		{? key [ for user | @user ] "Returns link and description"}

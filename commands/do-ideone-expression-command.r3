@@ -16,7 +16,7 @@ dialect-rule: [
 	(done: true
 		attempt [
 			probe mold/only expression
-			evaluate-by-ideone message-id ideone-user ideone-pass mold/only expression language ""
+			evaluate-by-ideone ideone-user ideone-pass mold/only expression language ""
 		]
 	)
 ]
@@ -26,7 +26,7 @@ soap-execute-template: {<?xml version="1.0" encoding="UTF-8" standalone="no"?><S
 soap-response-template: {<?xml version="1.0" encoding="UTF-8" standalone="no"?><SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="http://ideone.com:80/api/1/service" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap-enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ><SOAP-ENV:Body><mns:getSubmissionDetails xmlns:mns="http://ideone.com:80/api/1/service" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"><user xsi:type="xsd:string">$user</user><pass xsi:type="xsd:string">$pass</pass><link xsi:type="xsd:string">$link</link><withSource xsi:type="xsd:boolean">1</withSource><withInput xsi:type="xsd:boolean">1</withInput><withOutput xsi:type="xsd:boolean">1</withOutput><withStderr xsi:type="xsd:boolean">1</withStderr><withCmpinfo xsi:type="xsd:boolean">1</withCmpinfo></mns:getSubmissionDetails></SOAP-ENV:Body></SOAP-ENV:Envelope>
 }
 
-evaluate-by-ideone: func [message-id user pass source [string!] language [word! string! integer!] inpt [string!]
+evaluate-by-ideone: func [user pass source [string!] language [word! string! integer!] inpt [string!]
 	/local result result2 error status link inputs output
 ] [
 	error: status: link: none
