@@ -69,7 +69,7 @@ who-is-online: func [
 					reputation: 0
 					hi-rep-message: copy greet-message
 					if error? set/any 'err try [
-						rpage: to string! read rejoin [ profile-url person/2 "/" person/1 ]
+						rpage: to string! read rejoin [ lib/profile-url person/2 "/" person/1 ]
 						if parse rpage [ thru <span class="reputation-score"> copy reputation to </span> to end ][
 							either 20 > to integer! replace/all reputation "," "" [
 								append hi-rep-message low-rep-message

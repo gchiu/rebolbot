@@ -25,10 +25,13 @@ REBOL [
 		pause-period
 		percent-encode
 		privileged-users
+		profile-url
 		read-messages
+		read-message
 		referrer-url
 		reply
 		speak
+		speak-debug
 		speak-private
 		to-idate
 		to-itime
@@ -60,7 +63,7 @@ no-of-messages: none
 chat-length-limit: none
 
 ; Users who have special privileges with the bot (e.g. remove keys)
-; privileged-users: ["HostileFork" 211160 "Graham Chiu" 76852]
+; privileged-users: ["HostileFork" 211160 "Graham Chiu" 76852 "johnk" 1864998]
 privileged-users: []
 
 ; Mapping of username to info-link + timezone
@@ -90,15 +93,19 @@ html-url: none
 ; The main chat URL
 referrer-url: none
 
-person-id: user-name: message-id: parent-id: none
+profile-url: person-id: user-name: message-id: parent-id: none
 
 read-messages: func [cnt] []
+
+read-message: func [message-id] []
 
 delete-message: func [parent-id message-id /silent
 	/local result mess
 ] []
 
 speak-private: func [message room-id] []
+
+speak-debug: func [message /local err] []
 
 speak: func [message /local err] []
 
