@@ -17,7 +17,7 @@ expression: findstring: none
 
 dialect-rule: [
 	; save-key-rule
-	['save copy expression to end (done: true save-key expression)] |
+	['save not [ 'my ] copy expression to end (done: true save-key expression)] |
 	; list keys
 	['keys (done: true show-keys)] |
 	 ; remove-key-rule

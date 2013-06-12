@@ -14,7 +14,7 @@ Rebol [
 ]
 
 ;-- optionally load patched version of prot-http.r
-; do %prot-my-http.r
+do %prot-http.r
 
 system/options/default-suffix: %.r3
 command-dir: %commands/
@@ -39,6 +39,7 @@ either exists? %bot-config.r [
 	bot-config: object load %bot-config.r
 	lib/botname: bot-config/botname
 	room-id: bot-config/room-id
+        debug-room-id: bot-config/debug-room-id
 	room-descriptor: bot-config/room-descriptor
 	lib/greet-message: bot-config/greet-message
 	lib/low-rep-message: bot-config/low-rep-message
@@ -68,7 +69,7 @@ lib/no-of-messages: 5 ; fetch 5 messages each time
 lib/max-scan-messages: 200 ; max to fetch to scan for links by a user
 
 ; these users can remove keys - uses userids, the names are there just so that you know who they are!
-lib/privileged-users: []
+lib/privileged-users: ["HostileFork" 211160 "Graham Chiu" 76852 "johnk" 1864998]
 
 lastmessage-no: 8743137
 last-message-file: %lastmessage-no.r
@@ -82,8 +83,9 @@ if exists? last-message-file [
 ?? lastmessage-no
 
 so-chat-url: http://chat.stackoverflow.com/
-profile-url: http://stackoverflow.com/users/
+lib/profile-url: http://stackoverflow.com/users/
 chat-target-url: rejoin write-chat-block: [so-chat-url 'chats "/" room-id "/" 'messages/new]
+chat-debug-target-url: rejoin write-chat-block: [so-chat-url 'chats "/" debug-room-id "/" 'messages/new]
 lib/referrer-url: rejoin [so-chat-url 'rooms "/" room-id "/" room-descriptor]
 lib/html-url: rejoin [lib/referrer-url "?highlights=false"]
 read-target-url: rejoin [so-chat-url 'chats "/" room-id "/" 'events]
@@ -140,7 +142,7 @@ lib/to-idate: func [
 		date/day
 		pick ["Jan" "Feb" "Mar" "Apr" "May" "Jun" "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"] date/month
 		date/year
-		to-itime any [date/time 0:00]
+		lib/to-itime any [date/time 0:00]
 		str
 	]
 ]
@@ -169,6 +171,18 @@ lib/speak-private: func [message room-id] [
 	]
 ]
 
+lib/speak-debug: func [message /local err] [
+	if error? set/any 'err try [ 
+		to string! write chat-debug-target-url compose/deep copy/deep [ 
+			POST 
+			[(header)] 
+			(rejoin ["text=" lib/url-encode message "&fkey=" bot-fkey]) 
+		]
+	] [ 
+		mold err 
+	] 
+]
+
 lib/speak: func [message /local err] [
 	if error? set/any 'err try [
 		to string! write ?? chat-target-url compose/deep copy/deep [
@@ -187,6 +201,10 @@ lib/read-messages: func [cnt] [
 		[(header)]
 		(rejoin ["since=0&mode=Messages&msgCount=" cnt "&fkey=" bot-fkey])
 	]
+]
+
+lib/read-message: func [message-id] [
+	to string! read rejoin [read-message-target-url "/" message-id]
 ]
 
 lib/delete-message: func [parent-id message-id /silent
@@ -249,9 +267,9 @@ process-dialect: funct [expression
 		unless lib/done [lib/reply lib/message-id eliza/match mold expression]
 	] [
 		; sends error
-		lib/reply lib/message-id mold err
+		lib/speak-debug mold err
 		; now uses Eliza
-		; lib/reply lib/message-id eliza/match mold expression
+		lib/reply lib/message-id eliza/match mold expression
 	]
 ]
 

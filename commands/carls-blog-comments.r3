@@ -2,17 +2,17 @@ REBOL [
 Title: "Display Carl's blog comments"
 Name: carls-blog-comments
 Type: module
-Version: 1.0.0
+Version: 1.0.1
 Needs: [bot-api 1.0.0]
 Options: [private]
 ]
 
-help-string: {carls-blog last updated "when did we last check for new comments from rebol.com/blog.r"}
+help-string: {Carl's blog "when did we last check for new comments from rebol.com/blog.r"}
 
 last-updated-file: %blog-last-updated.r3
 
 dialect-rule: [
-  'carls-blog (
+  [ 'carls | 'carl | 'carl's ]  'blog (
     done: true
     reply message-id reform [
       "I last checked Carl's blog for new comments on"
@@ -59,13 +59,7 @@ process-blog: funct [
     blog: read http://www.rebol.com/cgi-bin/blog.r?cmt-week=1
 
     parse blog [
-      any [
-        article-rule
-        | name-rule
-        | datetime-rule
-        | comment-rule
-        | skip
-      ]
+      any [ article-rule | name-rule | datetime-rule | comment-rule | skip ]
     ]
 
     last-updated: any [ attempt [ load last-updated-file ] (now + diff-to-localtime) ]
