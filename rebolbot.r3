@@ -39,7 +39,7 @@ either exists? %bot-config.r [
 	bot-config: object load %bot-config.r
 	lib/botname: bot-config/botname
 	room-id: bot-config/room-id
-        debug-room-id: bot-config/debug-room-id
+	debug-room-id: bot-config/debug-room-id
 	room-descriptor: bot-config/room-descriptor
 	lib/greet-message: bot-config/greet-message
 	lib/low-rep-message: bot-config/low-rep-message
@@ -71,10 +71,10 @@ lib/max-scan-messages: 200 ; max to fetch to scan for links by a user
 ; these users can remove keys - uses userids, the names are there just so that you know who they are!
 lib/privileged-users: ["HostileFork" 211160 "Graham Chiu" 76852 "johnk" 1864998]
 
-lib/orders-cache: copy [ ]
-lib/cache-size: 6
+orders-cache: copy [ ]
+cache-size: 6
 ; we have a cache of 6 orders to the bot - [ message-id [integer!] order [string!] ]
-append/dup lib/orders-cache none lib/cache-size * 2
+append/dup orders-cache none cache-size * 2
 
 lastmessage-no: 8743137
 last-message-file: %lastmessage-no.r
