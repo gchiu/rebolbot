@@ -94,8 +94,6 @@ html-url: none
 ; The main chat URL
 referrer-url: none
 
-to-markdown-code: func [ txt ][]
-
 profile-url: person-id: user-name: message-id: parent-id: none
 
 read-messages: func [cnt] []
@@ -118,13 +116,15 @@ percent-encode: func [char [char!]] []
 
 url-encode: func [text] []
 
+to-markdown-code: func [txt] []
+
 to-itime: func [
 	{Returns a standard internet time string (two digits for each segment)}
 	time [time! number! block! none!]
 ] []
 
 to-idate: func [
-	"Returns a standard Internet date string."
+	{Returns a standard Internet date string.}
 	date [date!]
 	/local str
 ] []
