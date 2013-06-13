@@ -1,7 +1,7 @@
 Rebol [
 	file: %rebolbot.r3
-	author: [ "Graham Chiu" "Adrian Sampaleanu" ]
-	date: [28-Feb-2013 11-Apr-2013 2-June-2013] ; leave this as a block plz!  It's used by version command
+	author: [ "Graham Chiu" "Adrian Sampaleanu" "John Kenyon"]
+	date: [28-Feb-2013 11-Apr-2013 2-June-2013 13-June-2013] ; leave this as a block plz!  It's used by version command
 	version: 0.1.1
 	purpose: {Perform useful, automated actions in Stackoverflow chat rooms}
 	Notes: {You'll need to capture your own cookie and fkey using wireshark or similar.}
@@ -70,6 +70,11 @@ lib/max-scan-messages: 200 ; max to fetch to scan for links by a user
 
 ; these users can remove keys - uses userids, the names are there just so that you know who they are!
 lib/privileged-users: ["HostileFork" 211160 "Graham Chiu" 76852 "johnk" 1864998]
+
+lib/orders-cache: copy [ ]
+lib/cache-size: 6
+; we have a cache of 6 orders to the bot - [ message-id [integer!] order [string!] ]
+append/dup lib/orders-cache none lib/cache-size * 2
 
 lastmessage-no: 8743137
 last-message-file: %lastmessage-no.r
@@ -160,6 +165,28 @@ header: compose [
 	Content-Type: "application/x-www-form-urlencoded"
 	cookie: (bot-cookie)
 ]
+
+
+lib/to-markdown-code: func [ txt /local out something ][
+	quadspace: "    "
+	out: copy "" ; copy quadspace
+	parse txt [ 
+			some [ 
+				copy something to newline newline ( 
+					append out join quadspace something
+					append out newline 
+				)
+				|
+				copy something to end ( 
+					append out quadspace
+					append out something 
+				)
+			]
+		]
+	print out
+	trim/tail out
+]
+
 
 lib/speak-private: func [message room-id] [
 	bind write-chat-block 'room-id
@@ -349,8 +376,23 @@ forever [
 			] [print "failed"]
 			content: trim decode-xml content
 			; new message?
-			if message-no > lastmessage-no [
+			changed: false
+			
+			if any [
+				; new directive
+				message-no > lastmessage-no 
+				; old directive now edited changed
+				all [
+					; we found this order before
+					changed: find orders-cache message-id ; none | series				
+					content <> select orders-cache changed
+				]
+			][	; only gets here if a new order, or, if an old order that was updated
+				remove/part either series? changed [ changed ][ orders-cache ] 2
+				; save new or updated order
+				repend orders-cache [ message-id content ]
 				print "New message"
+				
 				save last-message-file lastmessage-no: message-no
 				; {<div class='full'>@RebolBot /x a: "Hello" <br> print a</div>}
 				; <content> {<div class='full'>@rebolbot <br> print &quot;ehll&quot;</div>}

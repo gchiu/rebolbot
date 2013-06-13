@@ -35,6 +35,7 @@ REBOL [
 		speak-private
 		to-idate
 		to-itime
+		to-markdown-code
 		url-encode
 		user-name
 	]
@@ -92,6 +93,8 @@ html-url: none
 
 ; The main chat URL
 referrer-url: none
+
+to-markdown-code: func [ txt ][]
 
 profile-url: person-id: user-name: message-id: parent-id: none
 
