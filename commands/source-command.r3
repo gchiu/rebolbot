@@ -11,22 +11,24 @@ REBOL [
 
 help-string: {source name  "provides Rebol source for named function"}
 
-	source-rule: [
-		'source set target word! (
-			done: true
-			either target = 'bot-config [
-				reply message-id "You need to use your own config file!"
+target: err: none
+
+dialect-rule: [
+	'source set target word! (
+		done: true
+		either target = 'bot-config [
+			reply message-id "You need to use your own config file!"
+		][
+		if error? set/any 'err try [
+			speak to-markdown-code rejoin [target ": " mold get bind target lib]
+		][
+			if error? try [
+				speak to-markdown-code rejoin [target ": " mold get bind target self]
 			][
-			if error? set/any 'err try [
-				speak to-markdown-code rejoin [target ": " mold get bind target lib]
-			][
-				if error? try [
-					speak to-markdown-code rejoin [target ": " mold get bind target self]
-				][
-					reply message-id ajoin [ "Sorry, " target " is not in my vocab!" ]
-				]
+				reply message-id ajoin [ "Sorry, " target " is not in my vocab!" ]
 			]
-			]
-		)
-	]
+		]
+		]
+	)
+]
 
