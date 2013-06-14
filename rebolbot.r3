@@ -319,7 +319,7 @@ process-key-search: func [expression
 		]
 	]
 	if not understood [
-		; lib/reply message-id [ {sorry "} expression {" is not in my current repertoire.  Try /h for help} ]
+		; lib/reply lib/message-id [ {sorry "} expression {" is not in my current repertoire.  Try /h for help} ]
 		lib/reply lib/message-id eliza/match mold expression
 	]
 ]
@@ -328,7 +328,7 @@ bot-cmd-rule: [
 	lib/botname some space
 	[
 		copy key to end (
-			; process-key-search message-id trim key
+			; process-key-search trim key
 			process-dialect key
 		)
 	]
@@ -343,12 +343,12 @@ message-rule: [
 	<user_name> set user-name string! |
 	<room_id> integer! |
 	<room_name> string! |
-	<message_id> set message-no integer! |
+	<message_id> set message-id integer! |
 	<parent_id> set parent-id integer! |
 	<show_parent> logic! |
 	tag! skip |
 	end
-	(lib/person-id: person-id lib/user-name: user-name lib/message-id: message-no lib/parent-id: parent-id )
+	(lib/person-id: person-id lib/user-name: user-name lib/message-id: message-id lib/parent-id: parent-id )
 ]
 
 ; lastmessage-no: 7999529
@@ -370,7 +370,7 @@ forever [
 		messages: result/2
 		; now skip thru each message and see if any unread
 		foreach msg messages [
-			content: lib/user-name: none message-no: 0
+			content: lib/user-name: none lib/message-id: 0
 			either parse ?? msg [some message-rule] [
 				print "parsed"
 			] [print "failed"]
@@ -380,20 +380,20 @@ forever [
 			
 			if any [
 				; new directive
-				message-no > lastmessage-no 
+				lib/message-id > lastmessage-no 
 				; old directive now edited changed
 				all [
 					; we found this order before
-					changed: find orders-cache message-id ; none | series				
+					changed: find orders-cache lib/message-id ; none | series				
 					content <> select orders-cache changed
 				]
 			][	; only gets here if a new order, or, if an old order that was updated
-				remove/part either series? changed [ changed ][ orders-cache ] 2
+				remove/part either series? changed [changed] [orders-cache] 2
 				; save new or updated order
-				repend orders-cache [ message-id content ]
+				repend orders-cache [lib/message-id content]
 				print "New message"
 				
-				save last-message-file lastmessage-no: message-no
+				save last-message-file lastmessage-no: lib/message-id
 				; {<div class='full'>@RebolBot /x a: "Hello" <br> print a</div>}
 				; <content> {<div class='full'>@rebolbot <br> print &quot;ehll&quot;</div>}
 				parse content [
