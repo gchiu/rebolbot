@@ -12,7 +12,8 @@ help-string: {help "this help"}
 dialect-rule: ['help (done: true provide-help)]
 
 provide-help: func [] [
-	reply message-id rejoin [{I respond to these commands:} newline
+	reply message-id rejoin [{I respond to these commands
+		Note: [] means optional input or shows expected datatype, (|) means choice:} newline
 		sort/skip collect [foreach command commands [keep command/help-string keep newline]] 2
 		{? key [ for user | @user ] "Returns link and description"}
 	]
