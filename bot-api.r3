@@ -123,7 +123,7 @@ url-encode: func [text] []
 
 to-markdown-code: func [txt] []
 
-unix-to-date: func [ unix [string! integer!] []
+unix-to-date: func [ unix [string! integer!]] []
 
 from-now: func [ d [date!]][]
 
