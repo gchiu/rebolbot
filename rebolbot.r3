@@ -418,8 +418,8 @@ forever [
 			content: trim decode-xml content
 
 			if all [
-				timestamp < two-minutes-ago 
-				not exists? join storage message-id
+				timestamp < lib/two-minutes-ago 
+				not exists? join storage lib/message-id
 			][
 				; print [ "saving " message-id ]
 				write join storage message-id to-json msg
