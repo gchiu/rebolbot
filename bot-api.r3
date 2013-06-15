@@ -12,6 +12,7 @@ REBOL [
 		commands
 		done
 		delete-message
+		from-now
 		greet-message
 		header
 		html-url
@@ -33,9 +34,13 @@ REBOL [
 		speak
 		speak-debug
 		speak-private
+		timestamp
 		to-idate
 		to-itime
 		to-markdown-code
+		two-minutes-ago
+		unix-to-date
+		unix-now
 		url-encode
 		user-name
 	]
@@ -94,7 +99,7 @@ html-url: none
 ; The main chat URL
 referrer-url: none
 
-profile-url: person-id: user-name: message-id: parent-id: none
+profile-url: person-id: user-name: message-id: parent-id: timestamp: none
 
 read-messages: func [cnt] []
 
@@ -117,6 +122,14 @@ percent-encode: func [char [char!]] []
 url-encode: func [text] []
 
 to-markdown-code: func [txt] []
+
+unix-to-date: func [ unix [string! integer!] []
+
+from-now: func [ d [date!]][]
+
+unix-now: does []
+
+two-minutes-ago: does []
 
 to-itime: func [
 	{Returns a standard internet time string (two digits for each segment)}
