@@ -34,6 +34,7 @@ REBOL [
 		speak
 		speak-debug
 		speak-private
+		storage
 		timestamp
 		to-idate
 		to-itime
@@ -99,7 +100,7 @@ html-url: none
 ; The main chat URL
 referrer-url: none
 
-profile-url: person-id: user-name: message-id: parent-id: timestamp: none
+profile-url: person-id: user-name: message-id: parent-id: timestamp: storage: none
 
 read-messages: func [cnt] []
 

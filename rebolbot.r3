@@ -56,9 +56,9 @@ either exists? %bot-config.r [
 ]
 
 ; put this into bot-config
-storage: %messages/
-if not exists? storage [
-	make-dir storage
+lib/storage: %messages/
+if not exists? lib/storage [
+	make-dir lib/storage
 ]
 
 ; write %bot-config.r compose [
