@@ -131,7 +131,7 @@ lib/unix-now: does [
 ]
 
 lib/two-minutes-ago: does [
-	subtract unix-now 60 * 2
+	subtract lib/unix-now 60 * 2
 ]
 
 lib/percent-encode: func [char [char!]] [
