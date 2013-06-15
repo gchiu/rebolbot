@@ -1,8 +1,8 @@
 Rebol [
 	file: %rebolbot.r3
 	author: [ "Graham Chiu" "Adrian Sampaleanu" "John Kenyon"]
-	date: [28-Feb-2013 11-Apr-2013 2-June-2013 13-June-2013] ; leave this as a block plz!  It's used by version command
-	version: 0.1.1
+	date: [28-Feb-2013 11-Apr-2013 2-June-2013 16-June-2013] ; leave this as a block plz!  It's used by version command
+	version: 0.1.2
 	purpose: {Perform useful, automated actions in Stackoverflow chat rooms}
 	Notes: {You'll need to capture your own cookie and fkey using wireshark or similar.}
 	License: 'Apache2
@@ -55,6 +55,12 @@ either exists? %bot-config.r [
 	bot-fkey: "-- get your own"
 ]
 
+; put this into bot-config
+storage: %messages/
+if not exists? storage [
+	make-dir storage
+]
+
 ; write %bot-config.r compose [
 ; 	botname: (mold lib/botname) #"^/"
 ; 	room-id: (room-id) #"^/"
@@ -98,6 +104,35 @@ delete-url: [so-chat-url 'messages "/" (lib/parent-id) "/" 'delete]
 
 lib/id-rule: charset [#"0" - #"9"]
 non-space: complement space: charset #" "
+
+lib/unix-to-date: func [ unix [string! integer!]
+	/local days d 
+][
+	if string? unix [ unix: to integer! unix ]
+	days: unix / 24 / 60 / 60
+	d: 1-Jan-1970 + days
+	d/zone: 0:00
+	d/second: 0
+	d
+]
+
+lib/from-now: func [ d [date!]][
+	case [
+		d + 7 < now [ d ]
+		d + 1 < now [ join now - d " days ago" ]
+		d + 1:00 < now [ join  to integer! divide difference now d 1:00 " hours ago" ]
+		d + 0:1:00 < now [ join to integer! divide difference now d 0:1:00 " minutes ago" ]
+		true [ join to integer! divide now/time - d/time 0:0:1 " seconds ago" ]	
+	]
+]
+
+lib/unix-now: does [
+	60 * 60 * divide difference now/utc 1-Jan-1970 1:00
+]
+
+lib/two-minutes-ago: does [
+	subtract unix-now 60 * 2
+]
 
 lib/percent-encode: func [char [char!]] [
 	char: enbase/base to-binary char 16
@@ -336,7 +371,7 @@ bot-cmd-rule: [
 
 message-rule: [
 	<event_type> quote 1 |
-	<time_stamp> integer! |
+	<time_stamp> set timestamp integer! |
 	<content> set content string! |
 	<id> integer! |
 	<user_id> set person-id integer! |
@@ -348,7 +383,13 @@ message-rule: [
 	<show_parent> logic! |
 	tag! skip |
 	end
-	(lib/person-id: person-id lib/user-name: user-name lib/message-id: message-id lib/parent-id: parent-id )
+	(
+		lib/timestamp: timestamp
+		lib/person-id: person-id 
+		lib/user-name: user-name 
+		lib/message-id: message-id 
+		lib/parent-id: parent-id 
+	)
 ]
 
 ; lastmessage-no: 7999529
@@ -375,6 +416,15 @@ forever [
 				print "parsed"
 			] [print "failed"]
 			content: trim decode-xml content
+
+			if all [
+				timestamp < two-minutes-ago 
+				not exists? join storage message-id
+			][
+				; print [ "saving " message-id ]
+				write join storage message-id to-json msg
+			]
+			
 			; new message?
 			changed: false
 			
