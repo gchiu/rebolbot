@@ -417,12 +417,14 @@ forever [
 			] [print "failed"]
 			content: trim decode-xml content
 
+			?? lib/storage
+			
 			if all [
 				timestamp < lib/two-minutes-ago 
-				not exists? join storage lib/message-id
+				not exists? join lib/storage lib/message-id
 			][
 				; print [ "saving " message-id ]
-				write join storage message-id to-json msg
+				write join lib/storage lib/message-id to-json msg
 			]
 			
 			; new message?
