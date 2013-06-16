@@ -16,7 +16,7 @@ dialect-rule: [
 	(done: true
 		attempt [
 			probe mold/only expression
-			evaluate-by-ideone ideone-user ideone-pass mold/only expression language ""
+			evaluate-by-ideone lib/ideone-user lib/ideone-pass mold/only expression language ""
 		]
 	)
 ]
@@ -60,7 +60,7 @@ evaluate-by-ideone: func [user pass source [string!] language [word! string! int
 		'f "1"
 		'g "1"
 	]
-	result: write ideone-url reduce ['SOAP (
+	result: write lib/ideone-url reduce ['SOAP (
 			reword soap-execute-template reduce [
 				'a user
 				'b pass
@@ -93,7 +93,7 @@ evaluate-by-ideone: func [user pass source [string!] language [word! string! int
 			; wait before picking up the result
 			wait 2
 
-			result2: write ideone-url reduce ['SOAP (
+			result2: write lib/ideone-url reduce ['SOAP (
 					reword soap-response-template reduce [
 						'user user
 						'pass pass

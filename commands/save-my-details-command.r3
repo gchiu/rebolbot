@@ -13,7 +13,7 @@ user-url: user-timezone: none
 
 dialect-rule: [
 	(print "save rule"
-		trim/all user-name
+		trim/all lib/user-name
 	)
 	'save 'my 'details set user-url url! (
                 add-user-details user-url none
@@ -55,7 +55,7 @@ add-user-details: func [user-url timezone [time! none!]
 	/local rec person
 ] [
 	attempt [
-		person: to word! user-name
+		person: to word! lib/user-name
 		if rec: find about-users person [
 			remove/part rec 2
 		]
