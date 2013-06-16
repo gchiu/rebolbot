@@ -44,6 +44,9 @@ REBOL [
 		unix-now
 		url-encode
 		user-name
+		ideone-user
+		ideone-pass
+		ideone-url
 	]
 ]
 
@@ -100,7 +103,7 @@ html-url: none
 ; The main chat URL
 referrer-url: none
 
-profile-url: person-id: user-name: message-id: parent-id: timestamp: storage: none
+ideone-url: ideone-pass: ideone-user: profile-url: person-id: user-name: message-id: parent-id: timestamp: storage: none
 
 read-messages: func [cnt] []
 

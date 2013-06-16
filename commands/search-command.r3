@@ -24,8 +24,8 @@ target: none
 					cnt: 0
 					out: copy []
 					outstring: copy "First 50 results^/"
-					?? storage
-					foreach file read storage [
+
+?? storage					foreach file read storage [
 						if cnt > 50 [
 							break
 						]

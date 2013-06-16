@@ -7,6 +7,7 @@ Rebol [
 	Notes: {You'll need to capture your own cookie and fkey using wireshark or similar.}
 	License: 'Apache2
 	Needs: [
+		%twitter.r3
 		%bot-api.r3 
 		http://reb4.me/r3/altjson 
 		http://reb4.me/r3/altxml
@@ -45,6 +46,9 @@ either exists? %bot-config.r [
 	lib/low-rep-message: bot-config/low-rep-message
 	bot-cookie: bot-config/bot-cookie
 	bot-fkey: bot-config/bot-fkey
+	lib/ideone-user: bot-config/ideone-user
+        lib/ideone-pass: bot-config/ideone-pass
+        lib/ideone-url: bot-config/ideone-url
 ] [
 	lib/botname: "-- name me --"
 	room-id: 0 
@@ -53,6 +57,9 @@ either exists? %bot-config.r [
 	lib/low-rep-message: "-- set my low reputation message --"
 	bot-cookie: "-- get your own --"
 	bot-fkey: "-- get your own"
+	lib/ideone-user: "-- get your own --"
+        lib/ideone-pass: "-- get your own --"
+        lib/ideone-url: http://apiurl
 ]
 
 ; put this into bot-config
@@ -100,6 +107,7 @@ chat-debug-target-url: rejoin write-chat-block: [so-chat-url 'chats "/" debug-ro
 lib/referrer-url: rejoin [so-chat-url 'rooms "/" room-id "/" room-descriptor]
 lib/html-url: rejoin [lib/referrer-url "?highlights=false"]
 read-target-url: rejoin [so-chat-url 'chats "/" room-id "/" 'events]
+read-message-target-url: rejoin [so-chat-url 'message]
 delete-url: [so-chat-url 'messages "/" (lib/parent-id) "/" 'delete]
 
 lib/id-rule: charset [#"0" - #"9"]
@@ -417,13 +425,12 @@ forever [
 			] [print "failed"]
 			content: trim decode-xml content
 
-			?? lib/storage
-			
+?? lib/storage
 			if all [
 				timestamp < lib/two-minutes-ago 
 				not exists? join lib/storage lib/message-id
 			][
-				; print [ "saving " message-id ]
+				; print [ "saving " lib/message-id ]
 				write join lib/storage lib/message-id to-json msg
 			]
 			
