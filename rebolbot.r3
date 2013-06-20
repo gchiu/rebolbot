@@ -1,8 +1,8 @@
 Rebol [
     file:       %rebolbot.r3
     author:     ["Graham Chiu" "Adrian Sampaleanu" "John Kenyon"]
-    date:       [28-Feb-2013 11-Apr-2013 2-June-2013 16-June-2013] ; leave this as a block plz!  It's used by version command
-    version:    0.1.2
+    date:       [28-Feb-2013 11-Apr-2013 2-June-2013 20-June-2013] ; leave this as a block plz!  It's used by version command
+    version:    0.1.3
     purpose:    {Perform useful, automated actions in Stackoverflow chat rooms}
     Notes:      {You'll need to capture your own cookie and fkey using wireshark or similar.}
     License:    'Apache2
@@ -230,6 +230,39 @@ lib/to-markdown-code: func [ txt /local out something ][
     trim/tail out
 ]
 
+lib/to-dash: func [ username ][
+	foreach c " ." [
+		replace/all username c "-"
+	]
+	username
+]
+
+lib/get-userid: func [ txt
+	/local page userid err rule
+][
+	userid: err: none
+	txt: copy ajoin [ {("} txt {")} ]
+	rule: [ 
+			thru "update_user("
+			thru txt thru "chat.sidebar.loadUser(" 
+			copy userid digits (
+				; speak-debug ajoin [ "Userid for " txt " is {" userid "}" ]
+				userid: to integer! userid 
+				; avoid anti-flooding
+				; ?? userid
+				wait 2
+			) 
+			to end 
+	]
+	if error? set/any 'err try [
+		page: to string! read html-url
+		if not parse page rule [
+			; print "failed the parse"
+			speak-debug join "parse failed for " txt
+		]
+	][ speak-debug mold/all err ]
+	userid
+]
 
 lib/speak-private: func [message room-id] [
     bind write-chat-block 'room-id

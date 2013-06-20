@@ -36,6 +36,7 @@ REBOL [
                     speak-private
                     storage
                     timestamp
+					to-dash
                     to-idate
                     to-itime
                     to-markdown-code
@@ -142,3 +143,8 @@ to-idate: func [
     {Returns a standard Internet date string.}
     date [date!]
 ] []
+
+to-dash: func [
+    {Returns name replacing space and . with -}
+    username [string!]
+][]

@@ -17,7 +17,7 @@ dialect-rule: [
 ]
 
 ; user-name is the one asking the question
-show-user-page: func [user /local data known timezone gmt err] [
+show-user-page: func [user /local data known timezone gmt err userid] [
     gmt: now
     gmt/zone: 0:00
     gmt: gmt - now/zone
@@ -34,8 +34,15 @@ show-user-page: func [user /local data known timezone gmt err] [
                 ]
             ]
         ] [
-            reply message-id ["Sorry, I don't know anything about " user " yet."]
-        ]
+            reply message-id ["Sorry, I don't know anything about " user " yet. But ..."]
+			userid: get-userid user
+			either integer? userid [ ; userid: get-userid user [
+				wait 2
+				speak ajoin [ profile-url userid "/" url-encode to-dash user]
+			][
+				speak-debug ajoin [ "Type? " type? userid " of " userid ]
+			]
+		]
         if not known [
             reply message-id ["I'd like to know about you!  Use the 'save my details' command"]
         ]
