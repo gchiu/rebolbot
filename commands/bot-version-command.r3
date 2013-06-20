@@ -1,10 +1,10 @@
 REBOL [
-	Title:		"Get bot version - command"
-	Name:		bot-version-command
-	Type:		module
-	Version:	1.0.0
-	Needs: [bot-api 1.0.0]
-	Options: [private]
+    Title:      "Get bot version - command"
+    Name:       bot-version-command
+    Type:       module
+    Version:    1.0.0
+    Needs:      [bot-api 1.0.0]
+    Options:    [private]
 ]
 
 help-string: {version "version of bot"}

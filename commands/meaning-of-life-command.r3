@@ -1,10 +1,10 @@
 REBOL [
-	Title:		"What is the meaning of life - command"
-	Name:		meaning-of-life-command
-	Type:		module
-	Version:	1.0.0
-	Needs: [bot-api 1.0.0]
-	Options: [private]
+    Title:      "What is the meaning of life - command"
+    Name:       meaning-of-life-command
+    Type:       module
+    Version:    1.0.0
+    Needs:      [bot-api 1.0.0]
+    Options:    [private]
 ]
 
 help-string: {what is the (meaning|purpose) of life? "answers the biggest question of all"}
