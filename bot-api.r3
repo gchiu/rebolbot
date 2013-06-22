@@ -13,6 +13,7 @@ REBOL [
                     done
                     delete-message
                     from-now
+                    get-userid
                     greet-message
                     header
                     html-url
@@ -105,6 +106,8 @@ html-url: none
 referrer-url: none
 
 ideone-url: ideone-pass: ideone-user: profile-url: person-id: user-name: message-id: parent-id: timestamp: storage: none
+
+get-userid: func [txt][]
 
 read-messages: func [cnt] []
 
