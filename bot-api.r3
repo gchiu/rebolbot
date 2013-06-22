@@ -36,7 +36,7 @@ REBOL [
                     speak-private
                     storage
                     timestamp
-					to-dash
+                    to-dash
                     to-idate
                     to-itime
                     to-markdown-code

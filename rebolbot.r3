@@ -231,37 +231,37 @@ lib/to-markdown-code: func [ txt /local out something ][
 ]
 
 lib/to-dash: func [ username ][
-	foreach c " ." [
-		replace/all username c "-"
-	]
-	username
+    foreach c " ." [
+        replace/all username c "-"
+    ]
+    username
 ]
 
 lib/get-userid: func [ txt
-	/local page userid err rule
+    /local page userid err rule
 ][
-	userid: err: none
-	txt: copy ajoin [ {("} txt {")} ]
-	rule: [ 
-			thru "update_user("
-			thru txt thru "chat.sidebar.loadUser(" 
-			copy userid digits (
-				; speak-debug ajoin [ "Userid for " txt " is {" userid "}" ]
-				userid: to integer! userid 
-				; avoid anti-flooding
-				; ?? userid
-				wait 2
-			) 
-			to end 
-	]
-	if error? set/any 'err try [
-		page: to string! read html-url
-		if not parse page rule [
-			; print "failed the parse"
-			speak-debug join "parse failed for " txt
-		]
-	][ speak-debug mold/all err ]
-	userid
+    userid: err: none
+    txt: copy ajoin [ {("} txt {")} ]
+    rule: [ 
+            thru "update_user("
+            thru txt thru "chat.sidebar.loadUser(" 
+            copy userid digits (
+                ; speak-debug ajoin [ "Userid for " txt " is {" userid "}" ]
+                userid: to integer! userid 
+                ; avoid anti-flooding
+                ; ?? userid
+                wait 2
+            ) 
+            to end 
+    ]
+    if error? set/any 'err try [
+        page: to string! read html-url
+        if not parse page rule [
+            ; print "failed the parse"
+            speak-debug join "parse failed for " txt
+        ]
+    ][ speak-debug mold/all err ]
+    userid
 ]
 
 lib/speak-private: func [message room-id] [
