@@ -15,6 +15,8 @@ REBOL [
     Purpose: {
         REBOL script to access and use the Twitter OAuth API.
         Warning: Currently configured to use HTTP only
+        New user registration must be done using rebol 2 version
+        This function will be updated when https is available (for Linux)
     }
 ]
 ; Local words
@@ -100,9 +102,9 @@ twitter: context bind [
             offset
         ]
 
-        ;either attempt [
+        either attempt [
             result: send/with 'get %1.1/statuses/home_timeline.json options
-        ;] load-result error/connection
+        ] load-result error/connection
     ]
 
     update: func [
@@ -114,9 +116,9 @@ twitter: context bind [
         unless persona/name error/credentials
         unless all [0 < length? status override > length? status] error/invalid
         set message reduce [status id]
-        either attempt [
+        ;either attempt [
             result: send/with 'post %1.1/statuses/update.json message
-        ] load-result error/connection
+        ;] load-result error/connection
     ]
 
 ] context [ ; internals
@@ -198,7 +200,7 @@ twitter: context bind [
             forskip params 2 [params/1: to word! params/1 if issue? params/2 [ params/2: to string! to word! params/2 ] ]
             oauth/oauth_signature: enbase/base checksum/secure/key to binary! rejoin [
                 uppercase form method "&" replace/all url-encode form lookup "%5f" "_" "&"
-                replace/all url-encode replace/all to-webform params "+" "%20" "%5f" "_"
+                replace/all replace/all url-encode replace/all to-webform params "+" "%20" "%5f" "_" "%255F" "_"
             ] rejoin [
                 settings/consumer-secret "&" any [persona/secret ""]
             ] 64
