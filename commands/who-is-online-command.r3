@@ -1,10 +1,10 @@
 REBOL [
-    Title:      "Who is online? - command"
-    Name:       who-is-online-command
-    Type:       module
-    Version:    1.0.1
-    Needs:      [bot-api 1.0.0]
-    Options:    [private]
+    Title: 		"Who is online? - command"
+    Name: 		who-is-online-command
+    Type: 		module
+    Version: 	1.0.1
+    Needs: 		[bot-api 1.0.0]
+    Options: 	[private]
 ]
 
 help-string: {present[?] "prints users currently online"}
@@ -33,8 +33,8 @@ either not exists? visitors-file [
 
 ;; Scan the html page, check to see who is here, and send a greet message to new users
 who-is-online: func [
-    /silent ; silent is used by the forever loop to update the users online
-    /local out page username userid len newbies addressees reputation rpage hi-rep-message err
+    /silent
+    /local out page username userid len newbies addressees reputation rpage hi-rep-message err json-name
 ] [
     addressees: copy ""
     len: length? visitors
@@ -45,18 +45,19 @@ who-is-online: func [
         some [
             thru "chat.sidebar.loadUser(" copy userid some id-rule thru "(" copy username [{"} thru {"}] ")"
             (trim/all username
+                json-name: copy username
                 username: load-json username
                 append out username
                 if not find visitors username [
                     append visitors username
-                    repend/only newbies [ username userid ]
+                    repend/only newbies [trim/with json-name {"} username userid]
                 ]
             )
         ]
         to end
     ]
     either empty? out [
-        ; this floods the room with messages if no one is there
+        ; this floods the room with can not parse the page messages!
         ; reply message-id "can not parse the page for users"
     ] [
         either not silent [
@@ -69,18 +70,20 @@ who-is-online: func [
                     reputation: 0
                     hi-rep-message: copy greet-message
                     if error? set/any 'err try [
-                        rpage: to string! read rejoin [ profile-url person/2 "/" person/1 ]
-                        if parse rpage [ thru <span class="reputation-score"> copy reputation to </span> to end ][
+                        ; attempt to read the rep page
+                        speak ajoin [profile-url person/3 "/" url-encode to-dash person/2]
+                        rpage: to string! read rejoin [profile-url person/3 "/" url-encode to-dash person/2]
+                        if parse rpage [thru <span class="reputation-score"> copy reputation to </span> to end] [
                             either 20 > to integer! replace/all reputation "," "" [
                                 append hi-rep-message low-rep-message
-                            ][
-                                append hi-rep-message ajoin [ " Cool, you have a reputation score of " reputation " and so can chat to us!" ]
+                            ] [
+                                append hi-rep-message ajoin [" Cool, you have a reputation score of " reputation " so chat away!"]
                             ]
-                        ]                   
-                    ][
-                        speak mold err                  
+                        ]
+                    ] [
+                        speak-debug mold err
                     ]
-                    speak ajoin [ "@" person/1 " " hi-rep-message ]
+                    speak ajoin ["@" person/2 " " hi-rep-message]
                     wait 1
                 ]
             ]
