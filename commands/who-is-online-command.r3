@@ -76,9 +76,9 @@ who-is-online: func [
                         ]
                         if parse rpage [thru <span class="reputation-score"> copy reputation to </span> to end] [
                             either 20 > to integer! replace/all reputation "," "" [
-                                speak ajoin [profile-url person/3 "/" url-encode to-dash person/2]
                                 append hi-rep-message lib/low-rep-message
                             ] [
+                                speak ajoin [profile-url person/3 "/" url-encode to-dash person/2]
                                 append hi-rep-message ajoin [" Cool, you have a reputation score of " reputation " so chat away!"]
                             ]
                         ]
