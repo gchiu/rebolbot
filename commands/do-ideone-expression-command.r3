@@ -90,7 +90,7 @@ evaluate-by-ideone: func [user pass source [string!] language [word! string! int
                 'link link/1
             ]
             ; wait before picking up the result
-            wait 2
+            wait 5
 
             result2: write ideone-url reduce ['SOAP (
                     reword soap-response-template reduce [
