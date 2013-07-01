@@ -71,11 +71,13 @@ who-is-online: func [
                     hi-rep-message: copy greet-message
                     if error? set/any 'err try [
                         ; attempt to read the rep page
-                        speak ajoin [profile-url person/3 "/" url-encode to-dash person/2]
-                        rpage: to string! read rejoin [profile-url person/3 "/" url-encode to-dash person/2]
+                        attempt [
+                            rpage: to string! read rejoin [profile-url person/3 "/" url-encode to-dash person/2] 
+                        ]
                         if parse rpage [thru <span class="reputation-score"> copy reputation to </span> to end] [
                             either 20 > to integer! replace/all reputation "," "" [
-                                append hi-rep-message low-rep-message
+                                speak ajoin [profile-url person/3 "/" url-encode to-dash person/2]
+                                append hi-rep-message lib/low-rep-message
                             ] [
                                 append hi-rep-message ajoin [" Cool, you have a reputation score of " reputation " so chat away!"]
                             ]
