@@ -11,4 +11,4 @@ help-string: {(hi|hello|goodbye|bye|[good][night|morning|afternoon|evening]) som
 
 greeting: none
 
-dialect-rule: [copy greeting [ 'hello | 'hi | 'goodbye | 'bye | any [ 'good ] [ 'night | 'morning | 'afternoon | 'evening ] ] (reply message-id [greeting " to you too"] done: true)]
+dialect-rule: [copy greeting [ 'hello | 'hi | 'goodbye | 'bye | any 'good [ 'night | 'morning | 'afternoon | 'evening ] ] (reply message-id [greeting " to you too"] done: true)]
