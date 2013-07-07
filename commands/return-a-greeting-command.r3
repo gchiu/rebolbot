@@ -7,7 +7,7 @@ REBOL [
 	Options: [private]
 ]
 
-help-string: {(hello|goodbye|bye|good night|morning) some-text "returns a greeting to the user who greeted bot"}
+help-string: {(hi|hello|goodbye|bye|[good][night|morning|afternoon|evening]) some-text "returns a greeting to the user who greeted bot"}
 
 greeting: none
 
