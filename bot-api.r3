@@ -18,6 +18,7 @@ REBOL [
                     header
                     html-url
                     id-rule
+                    log
                     low-rep-message
                     max-scan-messages
                     message-id
@@ -33,7 +34,6 @@ REBOL [
                     referrer-url
                     reply
                     speak
-                    speak-debug
                     speak-private
                     storage
                     timestamp
@@ -117,7 +117,7 @@ delete-message: func [parent-id message-id /silent] []
 
 speak-private: func [message room-id] []
 
-speak-debug: func [message] []
+log: func [text] []
 
 speak: func [message] []
 
