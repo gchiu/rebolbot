@@ -1,7 +1,7 @@
 Rebol [
     file:       %rebolbot.r3
     author:     ["Graham Chiu" "Adrian Sampaleanu" "John Kenyon"]
-    date:       [28-Feb-2013 11-Apr-2013 2-June-2013 20-June-2013] ; leave this as a block plz!  It's used by version command
+    date:       [28-Feb-2013 11-Apr-2013 2-June-2013 20-June-2013 20-July-2013] ; leave this as a block plz!  It's used by version command
     version:    0.1.3
     purpose:    {Perform useful, automated actions in Stackoverflow chat rooms}
     Notes:      {You'll need to capture your own cookie and fkey using wireshark or similar.}
@@ -40,7 +40,6 @@ either exists? %bot-config.r [
     bot-config: object load %bot-config.r
     lib/botname: bot-config/botname
     room-id: bot-config/room-id
-    debug-room-id: bot-config/debug-room-id
     room-descriptor: bot-config/room-descriptor
     lib/greet-message: bot-config/greet-message
     lib/low-rep-message: bot-config/low-rep-message
@@ -49,6 +48,7 @@ either exists? %bot-config.r [
     lib/ideone-user: bot-config/ideone-user
     lib/ideone-pass: bot-config/ideone-pass
     lib/ideone-url: bot-config/ideone-url
+    log-file: bot-config/log-file
 ] [
     lib/botname: "-- name me --"
     room-id: 0 
@@ -60,6 +60,7 @@ either exists? %bot-config.r [
     lib/ideone-user: "-- get your own --"
     lib/ideone-pass: "-- get your own --"
     lib/ideone-url: http://apiurl
+    log-file: %log.txt
 ]
 
 ; put this into bot-config
@@ -103,7 +104,6 @@ if exists? last-message-file [
 so-chat-url: http://chat.stackoverflow.com/
 lib/profile-url: http://stackoverflow.com/users/
 chat-target-url: rejoin write-chat-block: [so-chat-url 'chats "/" room-id "/" 'messages/new]
-chat-debug-target-url: rejoin write-chat-block: [so-chat-url 'chats "/" debug-room-id "/" 'messages/new]
 lib/referrer-url: rejoin [so-chat-url 'rooms "/" room-id "/" room-descriptor]
 lib/html-url: rejoin [lib/referrer-url "?highlights=false"]
 read-target-url: rejoin [so-chat-url 'chats "/" room-id "/" 'events]
@@ -246,7 +246,6 @@ lib/get-userid: func [ txt
             thru "update_user("
             thru txt thru "chat.sidebar.loadUser(" 
             copy userid digits (
-                ; speak-debug ajoin [ "Userid for " txt " is {" userid "}" ]
                 userid: to integer! userid 
                 ; avoid anti-flooding
                 ; ?? userid
@@ -258,9 +257,9 @@ lib/get-userid: func [ txt
         page: to string! read html-url
         if not parse page rule [
             ; print "failed the parse"
-            speak-debug join "parse failed for " txt
+            log join "parse failed for " txt
         ]
-    ][ speak-debug mold/all err ]
+    ][ log mold/all err ]
     userid
 ]
 
@@ -274,16 +273,8 @@ lib/speak-private: func [message room-id] [
     ]
 ]
 
-lib/speak-debug: func [message /local err] [
-    if error? set/any 'err try [ 
-        to string! write chat-debug-target-url compose/deep copy/deep [ 
-            POST 
-            [(header)] 
-            (rejoin ["text=" lib/url-encode message "&fkey=" bot-fkey]) 
-        ]
-    ] [ 
-        mold err 
-    ] 
+lib/log: func [text][
+    write/append log-file reform [ now/date now/time mold text newline ]
 ]
 
 lib/speak: func [message /local err] [
@@ -370,7 +361,7 @@ process-dialect: funct [expression
         unless lib/done [lib/reply lib/message-id eliza/match mold expression]
     ] [
         ; sends error
-        lib/speak-debug mold err
+        log mold err
         ; now uses Eliza
         lib/reply lib/message-id eliza/match mold expression
     ]
