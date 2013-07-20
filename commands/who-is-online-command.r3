@@ -77,7 +77,7 @@ who-is-online: func [
                             append full-greet-message ajoin [" Cool, you have a reputation score of " person/4 " so chat away!"]
                         ]
                     ] [
-                        speak-debug mold err
+                        log mold err
                     ]
                     speak ajoin ["@" person/2 " " full-greet-message]
                     wait 1
