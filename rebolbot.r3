@@ -257,9 +257,9 @@ lib/get-userid: func [ txt
         page: to string! read html-url
         if not parse page rule [
             ; print "failed the parse"
-            log join "parse failed for " txt
+            lib/log join "parse failed for " txt
         ]
-    ][ log mold/all err ]
+    ][ lib/log mold/all err ]
     userid
 ]
 
@@ -361,7 +361,7 @@ process-dialect: funct [expression
         unless lib/done [lib/reply lib/message-id eliza/match mold expression]
     ] [
         ; sends error
-        log mold err
+        lib/log mold err
         ; now uses Eliza
         lib/reply lib/message-id eliza/match mold expression
     ]
