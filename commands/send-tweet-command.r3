@@ -9,7 +9,7 @@ Needs: [
 Options: [private]
 ]
 help-string: 
-{tweet [message 12345678 | "string"] "Sends tweet of message number or string as @rebolbot"}
+{tweet [12345678 | "string"] "Sends tweet of message number or string as @rebolbot"}
 
 user-id: user-string: text: existing-message-id: none
 twitter-user: "rebolbot"
