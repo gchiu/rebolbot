@@ -168,7 +168,7 @@ evaluate-expression: func [expression
     ]
     ; indent 4 spaces ... needed for markup to be code
     replace/all output "^/" "^/    "
-    speak ajoin [
+    reply message-id ajoin [
         "    ; Brought to you by: " http://tryrebol.esperconsultancy.nl newline
         "    "
         either found? error-url [
