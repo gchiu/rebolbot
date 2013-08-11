@@ -42,6 +42,26 @@ Keep in mind that this bot is very young (only about a week now) so you can stil
 - Decide which commands you wish to run and move the rest out of the commands directory. This can be done before the bot is run or at runtime, with the bot still running. The bot monitors this directory and will reconfigure itself based on what commands are found there.
 - invoke the rebolbot.r3 script with the Rebol binary you downloaded. To do this, drag-and-drop the script on the executable if there's a GUI or follow the steps at [http://rebol.com](http://www.rebol.com/r3/docs/guide/basics-run.html) showing how to run from the command-line (CLI). 
 
+#### `cookie` and `fkey`
+
+At this moment, there's no automated way to log into a chat room, the bot acts as an user using an existing accout. This means you will need to start a session at some SO chat room before starting the bot.
+
+Once you have logged in, you will need to retrieve:
+* `cookie`: headers of any request to `chat.stackoverflow.com`
+* `fkey`: `POST` value from XHR/AJAX requests to the chat
+
+To capture these values, you can use:
+* Firefox developer tools (be sure to activate `Log Request and Response bodies` to capture the `fkey` value)
+* Chrome developer tools
+* Opera's Dragonfly
+* [Firebug][9]
+* [WireShark][10]
+
+The configuration file should look something like this:
+
+    bot-cookie: {__utma=000000555.800058800.0580855088.0588085000.0588088805.08; __utmz=000000555.0588088805.08.00.utmcsr=chat.stackoverflow.com|utmccn=(referral)|utmcmd=referral|utmcct=/rooms/291/rebol-and-red; __qca=P0-555505508-0580855088550; csr=t=uP50PWPuWuPu; __utmc=000000555; usr=t=EP0PwP05WpWd&s=pIkApIkApIkAa}
+    bot-fkey: "8800bb0a0a00a0a080a88a080a8a0aa0"
+
 - More detailed screencasts and instructions are coming soon. These will show how to set up the bot as well as how to create commands.
 
 ###License
@@ -79,3 +99,5 @@ Software systems have become too complex, layers upon layers of complexity, each
   [6]: http://www.red-lang.org
   [7]: http://chat.stackoverflow.com/users/76852/graham-chiu
   [8]: http://chat.stackoverflow.com/users/1792095/adrian
+  [9]: http://getfirebug.com/
+  [10]: http://www.wireshark.org/
