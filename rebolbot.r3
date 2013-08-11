@@ -23,7 +23,9 @@ command-dir: %commands/
 do sync-commands: func [] [
     clear head lib/commands: []
     foreach command read command-dir [
-        append lib/commands cmd: import/no-lib rejoin [command-dir command]
+        if system/options/default-suffix = suffix? command [
+            append lib/commands cmd: import/no-lib rejoin [command-dir command]
+        ]
     ]
 ]
 
