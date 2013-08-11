@@ -33,7 +33,7 @@ dialect-rule: [
           ; privileged user
          reply message-id join "Sending a tweet of message: " existing-message-id
           twitter/as twitter-user
-   	  twitter/update lib/read-message existing-message-id
+   	  twitter/update/override lib/read-message existing-message-id
         ] [
           reply message-id ["Sorry, " user-name " you don't have access to send a tweet"]
         ]
@@ -44,7 +44,7 @@ dialect-rule: [
           ; privileged user
           reply message-id join "Sending this as a tweet: " text
           twitter/as twitter-user
-          twitter/update text
+          twitter/update/override text
         ] [
           reply message-id ["Sorry, " user-name " you don't have access to send a tweet"]
         ]
