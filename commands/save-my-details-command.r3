@@ -2,6 +2,7 @@ REBOL [
     Title:      "Save my details - command"
     Name:       save-my-details-command
     Type:       module
+    Role:       command
     Version:    1.0.0
     Needs:      [bot-api 1.0.0]
     Options:    [private]

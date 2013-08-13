@@ -2,6 +2,7 @@ REBOL [
     Title:      "What is the meaning of life - command"
     Name:       meaning-of-life-command
     Type:       module
+    Role:       command
     Version:    1.0.0
     Needs:      [bot-api 1.0.0]
     Options:    [private]

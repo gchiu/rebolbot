@@ -2,6 +2,7 @@ REBOL [
     Title:      "Evaluate an expression against an ideone supported language interpreter - command"
     Name:       do-ideone-expression-command
     Type:       module
+    Role:       command
     Version:    1.0.0
     Needs:      [bot-api 1.0.0]
     Options:    [private]

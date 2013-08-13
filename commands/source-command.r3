@@ -2,6 +2,7 @@ REBOL [
     Title:      "Source for a Rebol or Bot function - command"
     Name:       source-command
     Type:       module
+    Role:       command
     Version:    1.0.0
     Needs:      [bot-api 1.0.0]
     Date:       13-June-2013

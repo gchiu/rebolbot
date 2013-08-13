@@ -2,6 +2,7 @@ REBOL [
     Title:      "Delete the last bot message - command"
     Name:       delete-last-message
     Type:       module
+    Role:       command
     Version:    1.0.1
     Needs:      [bot-api 1.0.0]
     Options:    [private]

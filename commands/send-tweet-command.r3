@@ -2,6 +2,7 @@ REBOL [
 Title: "Twitter command"
 Name: twitter-send
 Type: module
+Role: command
 Version: 1.0.0
 Needs: [
   bot-api 1.0.0
