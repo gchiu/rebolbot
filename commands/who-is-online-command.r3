@@ -48,9 +48,9 @@ who-is-online: func [
                 print [ "rep: " reputation userid username]
                 json-name: copy username
                 username: load-json username
-                append out copy username
+                append out username
                 if not find visitors username [
-                    append visitors username
+                    append visitors copy username
                     repend/only newbies [trim/with json-name {"} username userid to-integer reputation]
                 ]
             )
