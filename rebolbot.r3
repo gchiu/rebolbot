@@ -7,7 +7,6 @@ Rebol [
     Notes:      {You'll need to capture your own cookie and fkey using wireshark or similar.}
     License:    'Apache2
     Needs:      [
-                    %twitter.r3
                     %bot-api.r3 
                     http://reb4.me/r3/altjson 
                     http://reb4.me/r3/altxml
