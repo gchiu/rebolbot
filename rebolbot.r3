@@ -24,7 +24,13 @@ do sync-commands: func [] [
     clear head lib/commands: []
     foreach command read command-dir [
         if system/options/default-suffix = suffix? command [
-            append lib/commands cmd: import/no-lib rejoin [command-dir command]
+            if attempt [ all [
+                header: load/header rejoin [command-dir command]
+                found? find header/1/Needs 'bot-api
+                header/1/Role = 'command
+            ]] [
+                append lib/commands cmd: import/no-lib rejoin [command-dir command]
+            ]
         ]
     ]
 ]
