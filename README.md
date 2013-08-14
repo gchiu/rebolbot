@@ -64,6 +64,12 @@ The configuration file should look something like this:
 
 - More detailed screencasts and instructions are coming soon. These will show how to set up the bot as well as how to create commands.
 
+#### `botname` and reply loop
+
+`botname` option can be misleading, as it doesn't represent the name of the account the bot is using, but the name the bot should listen to. This is, when the bot finds a `@botname` mention at the recent messages, it will assume the message is a request and will scan the message to parse commands.
+
+If you set `botname` to be your own username, and you interact with the bot, the bot could end in a reply loop in case the command cannot be processed. To avoid this problem, set `botname` to a different username, like `@RebolBot`, `@REBOLparser` or `@etc`.
+
 ###License
 
 [Apache License, Version 2.0][3]
