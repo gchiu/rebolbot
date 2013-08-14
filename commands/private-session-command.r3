@@ -2,6 +2,7 @@ REBOL [
     Title:      "Private session with bot - command"
     Name:       private-session-command
     Type:       module
+    Role:       command
     Version:    1.0.0
     Needs:      [bot-api 1.0.0]
     Options:    [private]

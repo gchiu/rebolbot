@@ -2,6 +2,7 @@ REBOL [
     Title:      "Fetch - command"
     Name:       fetch-command
     Type:       module
+    Role:       command
     Version:    1.0.0
     Needs:      [bot-api 1.0.0]
     Date:       16-June-2013
