@@ -2,6 +2,7 @@ REBOL [
     Title:      "Display Carl's blog comments"
     Name:       carls-blog-comments
     Type:       module
+    Role:       command
     Version:    1.0.1
     Needs:      [bot-api 1.0.0]
     Options:    [private]

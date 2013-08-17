@@ -2,6 +2,7 @@ REBOL [
     Title:      "Evaluate a Rebol expression - command"
     Name:       do-rebol-and-rebol-like-expression-command
     Type:       module
+    Role:       command
     Version:    1.0.0
     Needs:      [bot-api 1.0.0]
     Options:    [private]

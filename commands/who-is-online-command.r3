@@ -2,6 +2,7 @@ REBOL [
     Title:      "Who is online? - command"
     Name:       who-is-online-command
     Type:       module
+    Role:       command
     Version:    1.0.1
     Needs:      [bot-api 1.0.0]
     Options:    [private]
