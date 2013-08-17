@@ -20,7 +20,7 @@ do %prot-http.r
 system/options/default-suffix: %.r3
 command-dir: %commands/
 
-do sync-commands: func [] [
+do sync-commands: func [ /local cmd-header ] [
     clear head lib/commands: []
     foreach command read command-dir [
         if attempt [ all [
