@@ -29,8 +29,8 @@ attempt [
 dialect-rule: [
   'shut 'up (
     either find room-admins person-id [
-      ; privileged user
-      quit/return 1
+      ; privileged user quite using a uniquely identifiable exit code
+      quit/return 42
     ] [
       reply message-id ["Sorry, " user-name " you don't have access to kill me"]
     ]
