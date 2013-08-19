@@ -34,5 +34,6 @@ dialect-rule: [
     ] [
       reply message-id ["Sorry, " user-name " you don't have access to kill me"]
     ]
-  ) done: true
+    done: true
+  )
 ]
