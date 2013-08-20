@@ -10,10 +10,9 @@ REBOL [
   Options: [private]
 ]
 
-help-string:
-{shut up "Allows room administrators to kill the bot"}
+help-string: {shut up "Allows room administrators to kill the bot"}
 
-user-id: user-string: text: existing-message-id: none
+user-id: user-string: existing-message-id: none
 room-admins: []
 attempt [
   parse read http://chat.stackoverflow.com/rooms/info/291/rebol-and-red?tab=access [
