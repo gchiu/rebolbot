@@ -68,7 +68,7 @@ find-links-by: func [n username
     either empty? links [
         reply message-id ["No links found in the last " n " messages."]
     ] [
-        payload: rejoin [username " in the last " n " messages wrote the following links: "]
+        payload: rejoin ["In the last " n " messages, " username " posted the following links: "]
         foreach [text link] links [
             link: rejoin ["[" text "](" link "); "]
             either chat-length-limit < add length? payload length? link [
