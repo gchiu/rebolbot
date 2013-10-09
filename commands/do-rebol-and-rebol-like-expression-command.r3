@@ -17,7 +17,7 @@ dialect-rule: [
         ["/x" | 'do] copy expression to end
         (done: true
             attempt [
-                evaluate-expression mold/only expression
+                evaluate-expression mold/only/all expression
             ]
         )
     ] |
