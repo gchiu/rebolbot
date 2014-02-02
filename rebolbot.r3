@@ -475,7 +475,7 @@ forever [
                 all [
                     ; we found this order before
                     changed: find orders-cache lib/message-id ; none | series               
-                    content <> select orders-cache changed
+                    content <> select orders-cache first changed
                 ]
             ][  ; only gets here if a new order, or, if an old order that was updated
                 remove/part either series? changed [changed] [orders-cache] 2
