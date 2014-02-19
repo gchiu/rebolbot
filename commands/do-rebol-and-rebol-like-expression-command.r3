@@ -8,7 +8,7 @@ REBOL [
     Options:    [private]
 ]
 
-help-string: {(do|do/2|do/red|do/boron) expression "evaluates Rebol/Rebol-like expression in a sandboxed interpreter"}
+help-string: {(do|do/2|do/red|do/boron|do/echo) expression "evaluates Rebol/Rebol-like expression in a sandboxed interpreter. echo repeats exact command sent to r3"}
 
 expression: target: none
 
@@ -18,6 +18,14 @@ dialect-rule: [
         (done: true
             attempt [
                 evaluate-expression mold/only/all expression
+            ]
+        )
+    ] |
+    [ ; echo-rule
+        'do/echo copy expression to end
+        (done: true
+            attempt [
+                evaluate-expression/echo mold/only/all expression
             ]
         )
     ] |
@@ -135,6 +143,7 @@ evaluate-expression: func [expression
     /r2 "rebol2"
     /boron "boron"
     /red "RED"
+    /echo "echo"
     /local output html error-url exp execute-url
 ] [
     output: html: error-url: none
@@ -143,6 +152,7 @@ evaluate-expression: func [expression
         r2 ['rebol2]
         boron ['boron]
         red ['red]
+        echo ['rebol3]
         true ['rebol3]
     ]
 
@@ -175,10 +185,8 @@ evaluate-expression: func [expression
         either found? error-url [
             ajoin ["; " error-url newline "    "]
         ] [""]
-        ">> " trim expression newline
+        either echo [ ajoin [ ">> " trim expression newline ] ] [ "" ]
         "    " output
     ]
     ?? expression
 ]
-
-
