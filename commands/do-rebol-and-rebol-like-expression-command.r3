@@ -181,11 +181,10 @@ evaluate-expression: func [expression
     replace/all output "^/" "^/    "
     speak ajoin [
         "    ; Brought to you by: " http://tryrebol.esperconsultancy.nl newline
-        "    "
         either found? error-url [
-            ajoin ["; " error-url newline "    "]
+            ajoin ["    ; " error-url newline "    "]
         ] [""]
-        either echo [ ajoin [ ">> " trim expression newline ] ] [ "" ]
+        either echo [ ajoin [ "    >> " trim expression newline ] ] [ "" ]
         "    " output
     ]
     ?? expression
