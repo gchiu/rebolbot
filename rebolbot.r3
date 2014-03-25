@@ -1,7 +1,7 @@
 Rebol [
     file:       %rebolbot.r3
     author:     ["Graham Chiu" "Adrian Sampaleanu" "John Kenyon"]
-    date:       [28-Feb-2013 11-Apr-2013 2-June-2013 20-June-2013 20-July-2013] ; leave this as a block plz!  It's used by version command
+    date:       [28-Feb-2013 11-Apr-2013 2-June-2013 20-June-2013 20-July-2013 25-Mar-2014] ; leave this as a block plz!  It's used by version command
     version:    0.1.3
     purpose:    {Perform useful, automated actions in Stackoverflow chat rooms}
     Notes:      {You'll need to capture your own cookie and fkey using wireshark or similar.}
@@ -286,10 +286,10 @@ lib/log: func [text][
 
 lib/speak: func [message /local err] [
     if error? set/any 'err try [
-        to string! write ?? chat-target-url compose/deep copy/deep [
+        to string! write chat-target-url compose/deep copy/deep [
             POST
             [(header)]
-            (rejoin ["text=" lib/url-encode ?? message "&fkey=" bot-fkey])
+            (rejoin ["text=" lib/url-encode message "&fkey=" bot-fkey])
         ]
     ] [
         mold err
@@ -343,7 +343,7 @@ process-dialect: funct [expression
             ] [
                 recipient: copy ""
             ]
-            process-key-search trim ajoin [?? search-key " " ?? recipient]
+            process-key-search trim ajoin [search-key " " recipient]
         )
     ]
 
@@ -364,7 +364,7 @@ process-dialect: funct [expression
                 replace/all expression "@" ""
             ]
         ]
-        probe parse expression: to block! ?? expression ?? dialect-rule
+        probe parse expression: to block! expression dialect-rule
         unless lib/done [lib/reply lib/message-id eliza/match mold expression]
     ] [
         ; sends error
@@ -385,7 +385,7 @@ process-key-search: func [expression
     ] [person: none]
     ; remove punctuation of ! and ?
     if find [#"!" #"?"] last search-key [remove back tail search-key]
-    foreach [key data] ?? lib/bot-expressions [
+    foreach [key data] lib/bot-expressions [
         if find/part probe key probe search-key length? search-key [
             understood: true
             lib/reply lib/message-id ["[" data/1 "](" data/2 ") " either found? person [person] [""]]
@@ -399,13 +399,19 @@ process-key-search: func [expression
 ]
 
 bot-cmd-rule: [
-    lib/botname some space
     [
-        copy key to end (
-            ; process-key-search trim key
-            process-dialect key
-        )
+        lib/botname some space 
+        copy key to end
+        |
+        [ ">" | "rebol3" ] "> " any space copy key to end ( insert head key "do " )
+        |
+        "rebol2> " any space copy key to end ( insert head key "do/2 " ) |
     ]
+    ; process-key-search trim key
+    (
+        replace/all key <br> newline trim key
+        process-dialect key
+    )
 ]
 
 message-rule: [
@@ -456,7 +462,6 @@ forever [
             ] [print "failed"]
             content: trim decode-xml content
 
-?? lib/storage
             if all [
                 timestamp < lib/two-minutes-ago 
                 not exists? join lib/storage lib/message-id
@@ -487,7 +492,9 @@ forever [
                 ; {<div class='full'>@RebolBot /x a: "Hello" <br> print a</div>}
                 ; <content> {<div class='full'>@rebolbot <br> print &quot;ehll&quot;</div>}
                 parse content [
-                    <div class='full'> opt space copy content to </div>
+                    [ <div class='full'> | <pre class='full'> ]
+                    opt some space
+                    copy content to [ "</div>" | "</pre>" ]
                     (
                         if parse content [lib/botname #" " <br> to end] [
                             ; treat a newline after botname as a do-rule
