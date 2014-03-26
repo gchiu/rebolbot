@@ -406,6 +406,8 @@ bot-cmd-rule: [
         [ ">" | "rebol3" ] "> " any space copy key to end ( insert head key "do " )
         |
         "rebol2> " any space copy key to end ( insert head key "do/2 " )
+        |
+        "red> " any space copy key to end ( insert head key "do/red " )
     ]
     ; process-key-search trim key
     (
