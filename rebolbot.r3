@@ -405,7 +405,7 @@ bot-cmd-rule: [
         |
         [ ">" | "rebol3" ] "> " any space copy key to end ( insert head key "do " )
         |
-        "rebol2> " any space copy key to end ( insert head key "do/2 " ) |
+        "rebol2> " any space copy key to end ( insert head key "do/2 " )
     ]
     ; process-key-search trim key
     (
@@ -500,7 +500,7 @@ forever [
                             ; treat a newline after botname as a do-rule
                             replace content <br> "do "
                         ]
-                        replace/all content <br> " " trim content
+                        replace/all content <br> newline trim content
                     )
                 ]
                 if parse content bot-cmd-rule [
