@@ -400,15 +400,14 @@ process-key-search: func [expression
 
 bot-cmd-rule: [
     [
-        any some space
         lib/botname some space 
         copy key to end
         |
         [ ">" | "rebol3" ] "> " any space copy key to end ( insert head key "do " )
         |
         "rebol2> " any space copy key to end ( insert head key "do/2 " )
-        |
-        "red> " any space copy key to end ( insert head key "do/red " )
+        ;|
+        ;"red> " any space copy key to end ( insert head key "do/red " )
     ]
     ; process-key-search trim key
     (
@@ -460,7 +459,7 @@ forever [
         ; now skip thru each message and see if any unread
         foreach msg messages [
             content: lib/user-name: none lib/message-id: 0
-            either parse ?? msg [some message-rule] [
+            either parse msg [some message-rule] [
                 print "parsed"
             ] [print "failed"]
             content: trim decode-xml content
@@ -499,9 +498,10 @@ forever [
                     opt some space
                     copy content to [ "</div>" | "</pre>" ]
                     (
-                        if parse content [lib/botname #" " <br> to end] [
+                        if parse ?? content [any space lib/botname [#" " <br> | "^M" ] to end] [
                             ; treat a newline after botname as a do-rule
                             replace content <br> "do "
+                            replace content "^M^/" " do "
                         ]
                         replace/all content <br> newline trim content
                     )
