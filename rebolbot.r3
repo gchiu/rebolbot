@@ -400,6 +400,7 @@ process-key-search: func [expression
 
 bot-cmd-rule: [
     [
+        any some space
         lib/botname some space 
         copy key to end
         |
