@@ -75,7 +75,6 @@ who-is-online: func [
                             append full-greet-message low-rep-message
                         ] [
                             speak ajoin [profile-url person/3 "/" url-encode to-dash person/2]
-                            append full-greet-message ajoin [" Cool, you have a reputation score of " person/4 " so chat away!"]
                             ; Modified following SO discussion about bots not speaking unless spoken to
                             speak full-greet-message
                         ]
