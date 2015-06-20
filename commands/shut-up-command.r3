@@ -10,29 +10,10 @@ REBOL [
   Options: [private]
 ]
 
-help-string: {shut up "Allows room administrators to kill the bot"}
-
-user-id: user-string: existing-message-id: none
-room-admins: []
-attempt [
-  parse read http://chat.stackoverflow.com/rooms/info/291/rebol-and-red?tab=access [
-    thru <div class="access-list">
-    some [
-      thru "access-user-" copy user-id to {"} (append room-admins to-integer to-string user-id)
-      thru {title="} copy user-string to {"} (append room-admins to-string user-string)
-    ]
-    to end
-  ]
-]
+help-string: {shut up "Allows room users to kill the bot"}
 
 dialect-rule: [
   'shut 'up (
-    either find room-admins person-id [
-      ; privileged user quite using a uniquely identifiable exit code
-      quit/return 42
-    ] [
-      reply message-id ["Sorry, " user-name " you don't have access to kill me"]
-    ]
-    done: true
+    quit/return 42
   )
 ]
