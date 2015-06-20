@@ -90,7 +90,7 @@ lib/no-of-messages: 5 ; fetch 5 messages each time
 lib/max-scan-messages: 200 ; max to fetch to scan for links by a user
 
 ; these users can remove keys - uses userids, the names are there just so that you know who they are!
-lib/privileged-users: ["HostileFork" 211160 "Graham Chiu" 76852 "johnk" 1864998]
+lib/privileged-users: ["HostileFork" 211160 "Graham Chiu" 76852 "johnk" 1864998 "marki" 4454744]
 
 orders-cache: copy [ ]
 cache-size: 6
