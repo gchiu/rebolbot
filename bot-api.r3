@@ -19,6 +19,7 @@ REBOL [
                     html-url
                     id-rule
                     log
+                    login2so
                     low-rep-message
                     max-scan-messages
                     message-id
