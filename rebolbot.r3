@@ -1,21 +1,20 @@
 Rebol [
     file:       %rebolbot.r3
     author:     ["Graham Chiu" "Adrian Sampaleanu" "John Kenyon"]
-    date:       [28-Feb-2013 11-Apr-2013 2-June-2013 20-June-2013 20-July-2013 25-Mar-2014] ; leave this as a block plz!  It's used by version command
-    version:    0.1.3
+    date:       [28-Feb-2013 11-Apr-2013 2-June-2013 20-June-2013 20-July-2013 25-Mar-2014 13-May-2015] ; leave this as a block plz!  It's used by version command
+    version:    0.1.4
     purpose:    {Perform useful, automated actions in Stackoverflow chat rooms}
-    Notes:      {You'll need to capture your own cookie and fkey using wireshark or similar.}
     License:    'Apache2
     Needs:      [
-                    %twitter.r3
+                    ;%twitter.r3
                     %bot-api.r3 
+                    %prot-http.r3 ;required for login2so functino
                     http://reb4.me/r3/altjson 
                     http://reb4.me/r3/altxml
+                    http://reb4.me/r3/altwebform
                 ]
 ]
 
-;-- optionally load patched version of prot-http.r
-do %prot-http.r
 
 system/options/default-suffix: %.r3
 command-dir: %commands/
@@ -50,8 +49,8 @@ either exists? %bot-config.r [
     room-descriptor: bot-config/room-descriptor
     lib/greet-message: bot-config/greet-message
     lib/low-rep-message: bot-config/low-rep-message
-    bot-cookie: bot-config/bot-cookie
-    bot-fkey: bot-config/bot-fkey
+    bot-user: bot-config/bot-user
+    bot-pass: bot-config/bot-pass
     lib/ideone-user: bot-config/ideone-user
     lib/ideone-pass: bot-config/ideone-pass
     lib/ideone-url: bot-config/ideone-url
@@ -62,8 +61,6 @@ either exists? %bot-config.r [
     room-descriptor: "-- room name --"
     lib/greet-message: "-- set my welcome message --"
     lib/low-rep-message: "-- set my low reputation message --"
-    bot-cookie: "-- get your own --"
-    bot-fkey: "-- get your own"
     lib/ideone-user: "-- get your own --"
     lib/ideone-pass: "-- get your own --"
     lib/ideone-url: http://apiurl
@@ -81,8 +78,6 @@ if not exists? lib/storage [
 ;   room-id: (room-id) #"^/"
 ;   room-descriptor: (mold room-descriptor) #"^/"
 ;   greet-message: (mold lib/greet-message) #"^/"
-;   bot-cookie: (mold bot-cookie) #"^/"
-;   bot-fkey: (mold bot-fkey)
 ; ]
 
 lib/pause-period: 5 ; 5 seconds between each poll of the chat
@@ -90,7 +85,7 @@ lib/no-of-messages: 5 ; fetch 5 messages each time
 lib/max-scan-messages: 200 ; max to fetch to scan for links by a user
 
 ; these users can remove keys - uses userids, the names are there just so that you know who they are!
-lib/privileged-users: ["HostileFork" 211160 "Graham Chiu" 76852 "johnk" 1864998 "marki" 4454744]
+lib/privileged-users: ["HostileFork" 211160 "Graham Chiu" 76852 "johnk" 1864998]
 
 orders-cache: copy [ ]
 cache-size: 6
@@ -202,21 +197,6 @@ lib/to-idate: func [
     ]
 ]
 
-; perhaps not all of this header is required
-header: compose [
-    Host: "chat.stackoverflow.com"
-    Origin: "http://chat.stackoverflow.com"
-    Accept: "application/json, text/javascript, */*; q=0.01"
-    X-Requested-With: "XMLHttpRequest"
-    Referer: (lib/referrer-url)
-    Accept-Encoding: "gzip,deflate"
-    Accept-Language: "en-US"
-    Accept-Charset: "ISO-8859-1,utf-8;q=0.7,*;q=0.3"
-    Content-Type: "application/x-www-form-urlencoded"
-    cookie: (bot-cookie)
-]
-
-
 lib/to-markdown-code: func [ txt /local out something ][
     quadspace: "    "
     out: copy "" ; copy quadspace
@@ -242,6 +222,43 @@ lib/to-dash: func [ username ][
         replace/all username c "-"
     ]
     username
+]
+
+lib/login2so: func [email [email!] password [string!] chat-page [url!]
+	/local fkey root loginpage cookiejar result err configobj
+][
+	configobj: make object! [fkey: copy "" bot-cookie: copy ""]
+	fkey: none
+	root: https://stackoverflow.com
+	; grab the first fkey from the login page
+	print "reading login page"
+	loginpage: to string! read https://stackoverflow.com/users/login
+	print "read ..."
+	if parse loginpage [thru "se-login-form" thru {action="} copy action to {"} thru "fkey" thru {value="} copy fkey to {"} thru {"submit-button"} thru {value="} copy login to {"} to end][
+		postdata: to-webform reduce ['fkey fkey 'email email 'password password 'submit-button login]
+		if error? err: try [
+			print "posting"
+			result: to-string write join root action postdata
+		][
+                        cookiejar: reform collect [ foreach cookie err/arg2/headers/set-cookie [ keep first split cookie " " ] ] ; trim the expires and domain parts
+                        result: write chat-page compose/deep [HEADERS GET [Cookie: (cookiejar) ] ]
+                        append cookiejar reform collect [ foreach cookie result/spec/debug/headers/set-cookie [ keep first split cookie " " ] ] ; we now have the chatusr cookie as well
+                        result: result/data
+                        result: reverse decode 'markup result
+			; now grab the new fkey for the chat pages
+			foreach tag result [
+				if tag? tag [
+					if parse tag [thru "fkey" thru "hidden" thru "value" thru {"} copy fkey to {"} to end][
+						fkey: to string! fkey
+						break
+					]
+				]
+			]
+		]
+		configobj/fkey: fkey
+		configobj/bot-cookie: cookiejar
+	]
+	configobj
 ]
 
 lib/get-userid: func [ txt
@@ -276,7 +293,7 @@ lib/speak-private: func [message room-id] [
     to string! write rejoin compose copy write-chat-block compose/deep copy/deep [
         POST
         [(header)]
-        (rejoin ["text=" lib/url-encode message "&fkey=" bot-fkey])
+        (rejoin ["text=" lib/url-encode message "&fkey=" auth-object/fkey])
     ]
 ]
 
@@ -289,18 +306,60 @@ lib/speak: func [message /local err] [
         to string! write chat-target-url compose/deep copy/deep [
             POST
             [(header)]
-            (rejoin ["text=" lib/url-encode message "&fkey=" bot-fkey])
+            (rejoin ["text=" lib/url-encode message "&fkey=" auth-object/fkey])
         ]
     ] [
         mold err
     ]
 ]
 
+; mini-http is a minimalistic http implementation
+mini-http: func [ url [url!] method [word! string!] cookies [string!] code [string!] timeout [integer!]
+    /local url-obj http-request payload result port
+][
+    http-request: {$method $path HTTP/1.0
+Host: $host
+User-Agent: Mozilla/5.0
+Accept: text/html
+Content-Length: $len
+Content-Type: text/plain; charset=UTF-8
+Set-Cookie: $cookies
+$code}
+
+    url-obj: construct/with sys/decode-url url make object! copy [port-id: 80 path: ""] 
+    if empty? url-obj/path [ url-obj/path: copy "/" ]
+    payload: reword http-request reduce [
+        'method method
+        'path url-obj/path
+        'host url-obj/host
+        'cookies cookies
+        'len length? code
+        'code code
+    ]
+    probe payload
+    port: make port! rejoin [tcp:// url-obj/host ":" url-obj/port-id]
+    port/awake: func [event] [
+        switch/default event/type [
+           lookup [open event/port false ]
+           connect [write event/port to binary! join payload newline false]
+           wrote [read event/port false]
+           read done [
+            ; probe event/port/data
+            result: to-string event/port/data true ]
+       ][ true ]
+    ]
+    open port
+    either port? wait [ port timeout ][
+        result
+    ][  ; timeout
+        none
+    ]
+]
 lib/read-messages: func [cnt] [
     to string! write read-target-url compose/deep copy/deep [
         POST
         [(header)]
-        (rejoin ["since=0&mode=Messages&msgCount=" cnt "&fkey=" bot-fkey])
+        (rejoin ["since=0&mode=Messages&msgCount=" cnt "&fkey=" auth-object/fkey])
     ]
 ]
 
@@ -315,7 +374,7 @@ lib/delete-message: func [parent-id message-id /silent
     result: to string! write probe mess: rejoin compose copy delete-url compose/deep copy/deep [
         POST
         [(header)]
-        (rejoin ["fkey=" bot-fkey])
+        (rejoin ["fkey=" auth-object/fkey])
     ]
     if not silent [
         switch/default result [
@@ -365,7 +424,15 @@ process-dialect: funct [expression
             ]
         ]
         probe parse expression: to block! expression dialect-rule
-        unless lib/done [lib/reply lib/message-id eliza/match mold expression]
+        unless lib/done [
+            response: lib/reply lib/message-id eliza/match mold expression
+            if found? find response "code: 513" [
+                ; Very likely that the cookie has expired - try to log in again
+                ; DISABLED UNTIL PROPERLY TESTED
+                ;auth-object: lib/login2so bot-config/bot-user bot-config/bot-pass bot-config/bot-room
+                ;lib/log "Login"
+            ]
+        ]
     ] [
         ; sends error
         lib/log mold err
@@ -439,8 +506,6 @@ message-rule: [
     )
 ]
 
-; lastmessage-no: 7999529
-
 call-command-pulse: funct[] [
     foreach command lib/commands [
         if all [
@@ -448,6 +513,24 @@ call-command-pulse: funct[] [
             type? :callback = function!
         ] [command/pulse-callback]
     ]
+]
+
+; Initial login
+auth-object: lib/login2so bot-config/bot-user bot-config/bot-pass bot-config/bot-room
+print auth-object
+
+; perhaps not all of this header is required
+header: compose [
+    Host: "chat.stackoverflow.com"
+    Origin: "http://chat.stackoverflow.com"
+    Accept: "application/json, text/javascript, */*; q=0.01"
+    X-Requested-With: "XMLHttpRequest"
+    Referer: (lib/referrer-url)
+    Accept-Encoding: "gzip,deflate"
+    Accept-Language: "en-US"
+    Accept-Charset: "ISO-8859-1,utf-8;q=0.7,*;q=0.3"
+    Content-Type: "application/x-www-form-urlencoded"
+    cookie: (auth-object/bot-cookie)
 ]
 
 cnt: 0 ; rescan for new users every 10 iterations ( for 5 seconds, that's 50 seconds )
