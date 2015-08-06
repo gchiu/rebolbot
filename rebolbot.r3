@@ -6,7 +6,7 @@ Rebol [
     purpose:    {Perform useful, automated actions in Stackoverflow chat rooms}
     License:    'Apache2
     Needs:      [
-                    ;%twitter.r3
+                    %twitter.r3
                     %bot-api.r3 
                     %prot-http.r3 ;required for login2so functino
                     http://reb4.me/r3/altjson 
