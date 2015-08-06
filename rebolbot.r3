@@ -355,6 +355,7 @@ $code}
         none
     ]
 ]
+
 lib/read-messages: func [cnt] [
     to string! write read-target-url compose/deep copy/deep [
         POST
@@ -428,9 +429,9 @@ process-dialect: funct [expression
             response: lib/reply lib/message-id eliza/match mold expression
             if found? find response "code: 513" [
                 ; Very likely that the cookie has expired - try to log in again
-                ; DISABLED UNTIL PROPERLY TESTED
-                ;auth-object: lib/login2so bot-config/bot-user bot-config/bot-pass bot-config/bot-room
-                ;lib/log "Login"
+                lib/log "Re-authenticating ..."
+                auth-object: lib/login2so bot-config/bot-user bot-config/bot-pass bot-config/bot-room
+                lib/log "Loged in"
             ]
         ]
     ] [
@@ -534,6 +535,7 @@ header: compose [
 ]
 
 cnt: 0 ; rescan for new users every 10 iterations ( for 5 seconds, that's 50 seconds )
+bot-message-cnt: 0 ; stop the bot monopolising the room
 forever [
     ++ cnt
     if error? set/any 'errmain try [
@@ -542,9 +544,9 @@ forever [
         ; now skip thru each message and see if any unread
         foreach msg messages [
             content: lib/user-name: none lib/message-id: 0
-            either parse msg [some message-rule] [
-                print "parsed"
-            ] [print "failed"]
+            if not parse msg [some message-rule] [
+                print "failed to parse message"
+            ]
             content: trim decode-xml content
 
             if all [
@@ -554,7 +556,10 @@ forever [
                 ; print [ "saving " lib/message-id ]
                 write join lib/storage lib/message-id to-json msg
             ]
-            
+            ; failsafe counter
+            if equal? remove copy bot-config/botname lib/user-name [ ++ bot-message-cnt ]
+            if bot-message-cnt > 7 [ quit/return 42 ] ; if the last 8 messages were by the bot then die
+
             ; new message?
             changed: false
             
@@ -601,6 +606,7 @@ forever [
         cnt: 0
         call-command-pulse
     ]
+    bot-message-cnt: 0
     sync-commands
     attempt [ wait lib/pause-period ]
 ]
