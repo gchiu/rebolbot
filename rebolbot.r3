@@ -550,7 +550,7 @@ forever [
             content: trim decode-xml content
 
             if all [
-                timestamp < lib/two-minutes-ago 
+                lib/timestamp < lib/two-minutes-ago 
                 not exists? join lib/storage lib/message-id
             ][
                 ; print [ "saving " lib/message-id ]
