@@ -9,9 +9,9 @@ Rebol [
                     %twitter.r3
                     %bot-api.r3 
                     %prot-http.r3 ;required for login2so functino
-                    http://reb4.me/r3/altjson 
-                    http://reb4.me/r3/altxml
+                    http://reb4.me/r3/altjson
                     http://reb4.me/r3/altwebform
+                    http://reb4.me/r3/altxml
                 ]
 ]
 
@@ -241,10 +241,9 @@ lib/login2so: func [email [email!] password [string!] chat-page [url!]
 			result: to-string write join root action postdata
 		][
                         cookiejar: reform collect [ foreach cookie err/arg2/headers/set-cookie [ keep first split cookie " " ] ] ; trim the expires and domain parts
-                        result: write chat-page compose/deep [HEADERS GET [Cookie: (cookiejar) ] ]
-                        append cookiejar reform collect [ foreach cookie result/spec/debug/headers/set-cookie [ keep first split cookie " " ] ] ; we now have the chatusr cookie as well
-                        result: result/data
-                        result: reverse decode 'markup result
+	                parse cookiejar [to "usr=" copy cookiejar to ";"]
+			result: write chat-page compose/deep [GET [cookie: (cookiejar)]]
+			result: reverse decode 'markup result
 			; now grab the new fkey for the chat pages
 			foreach tag result [
 				if tag? tag [
