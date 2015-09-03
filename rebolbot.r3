@@ -467,10 +467,12 @@ process-key-search: func [expression
 
 bot-cmd-rule: [
     [
-        lib/botname some space 
+        lib/botname some space
         copy key to end
         |
-        [ ">" | "rebol3" ] "> " any space copy key to end ( insert head key "do " )
+        "rebol3> " any space copy key to end ( insert head key "do " )
+        |
+        ">> " any space copy key to end ( either not find key newline [ insert head key "do " ][ key: ""] )
         |
         "rebol2> " any space copy key to end ( insert head key "do/2 " )
         ;|
@@ -479,7 +481,7 @@ bot-cmd-rule: [
     ; process-key-search trim key
     (
         replace/all key <br> newline trim key
-        process-dialect key
+        if not empty? key [ process-dialect key ]
     )
 ]
 
