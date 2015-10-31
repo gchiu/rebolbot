@@ -234,7 +234,7 @@ lib/login2so: func [email [email!] password [string!] chat-page [url!]
 	print "reading login page"
 	loginpage: to string! read https://stackoverflow.com/users/login
 	print "read ..."
-	if parse loginpage [thru "se-login-form" thru {action="} copy action to {"} thru "fkey" thru {value="} copy fkey to {"} thru {"submit-button"} thru {value="} copy login to {"} to end][
+	if parse loginpage [thru "login-form" thru {action="} copy action to {"} thru "fkey" thru {value="} copy fkey to {"} thru {"submit-button"} thru {value="} copy login to {"} to end][
 		postdata: to-webform reduce ['fkey fkey 'email email 'password password 'submit-button login]
 		if error? err: try [
 			print "posting"
