@@ -79,12 +79,15 @@ hijack 'write adapt 'old-write [
     ]
 ]
 
-unset 'old-write
-unset 'old-read
-
-; disable other functions
-
-unset 'call unset 'cd unset 'change-dir unset 'list-dir unset 'ls unset 'delete unset 'rm
+for-each w paranoid: [
+    old-write
+    old-read
+    call
+    cd change-dir
+    ls list-dir 
+    rm delete
+    make-routine ; FFI
+][ unset w]
 
 ; check coming from chat
 if "stackoverflow.com" <> remote-client: read join-of dns:// cgi/REMOTE_ADDR [
