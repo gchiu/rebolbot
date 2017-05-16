@@ -12,7 +12,7 @@ REBOL [
 
 help-string: {cc id "retrieves curecode data"}
 
-target: none
+target: _
 
     
     dialect-rule: [
@@ -20,7 +20,7 @@ target: none
             done: true
             use [ result ][
                 attempt [
-                    result: load join http://curecode.org/rebol3/api.rsp?type=ticket&show=all&id= target
+                    result: load join-of http://curecode.org/rebol3/api.rsp?type=ticket&show=all&id= target
                     if parse result [ 'ok set result block! ][
                         reply message-id mold result
                     ]

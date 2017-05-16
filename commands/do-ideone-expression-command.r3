@@ -10,7 +10,7 @@ REBOL [
 
 help-string: {do/ideone which-lang [word! string! integer!] expression "evaluates a source expression for the specified language"}
 
-language: expression: none
+language: expression: _
 
 dialect-rule: [
     'do/ideone [set language word! | set language string! | set language integer!] copy expression to end
@@ -29,7 +29,7 @@ soap-response-template: {<?xml version="1.0" encoding="UTF-8" standalone="no"?><
 evaluate-by-ideone: func [user pass source [string!] language [word! string! integer!] inpt [string!]
     /local result result2 error status link inputs output
 ] [
-    error: status: link: none
+    error: status: link: _
     ;print "in eval ideone"
 
     ;?? source
@@ -46,7 +46,7 @@ evaluate-by-ideone: func [user pass source [string!] language [word! string! int
             "perl" 3
         ] to string! language
     ]
-    if none? language [
+    if blank? language [
         reply message-id "Unsupported language"
         return
     ]

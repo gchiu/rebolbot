@@ -12,7 +12,7 @@ help-string:
 {show (me|all) links [ like url ] "shows saved links (like url, if provided)"
 show me your youtube videos "shows saved youtube videos"}
 
-show-urls: similar: youtube: none
+show-urls: similar: youtube: _
 
 dialect-rule: [
     'show any ['me | 'all]

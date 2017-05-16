@@ -1,40 +1,51 @@
 Rebol [
     file:       %rebolbot.r3
     author:     ["Graham Chiu" "Adrian Sampaleanu" "John Kenyon"]
-    date:       [28-Feb-2013 11-Apr-2013 2-June-2013 20-June-2013 20-July-2013 25-Mar-2014 13-May-2015] ; leave this as a block plz!  It's used by version command
-    version:    0.1.4
+    date:       [28-Feb-2013 11-Apr-2013 2-June-2013 20-June-2013 20-July-2013 25-Mar-2014 13-May-2015 16-May-2017] ; leave this as a block plz!  It's used by version command
+    version:    0.1.5
     purpose:    {Perform useful, automated actions in Stackoverflow chat rooms}
     License:    'Apache2
+    Notes:      {16-May-2017 first attempt to update to ren-c}
     Needs:      [
-                    %twitter.r3
-                    %bot-api.r3 
-                    %prot-http.r3 ;required for login2so functino
-                    http://reb4.me/r3/altjson
-                    http://reb4.me/r3/altwebform
-                    http://reb4.me/r3/altxml
+                    ; %twitter.r3
+                    ;%bot-api.r3 f
+                    ;%altwebform.reb
+                    ;%prot-http.r3 ;required for login2so functino
+                    ;http://reb4.me/r3/altjson
+                    ;http://reb4.me/r3/altwebform
+                    ; http://reb4.me/r3/altxml
                 ]
 ]
-
+do %bot-api.r3
+import <webform> ; %webform.reb
+import <json>
+import <xml>
 
 system/options/default-suffix: %.r3
 command-dir: %commands/
 
-do sync-commands: func [ /local cmd-header ] [
-    clear head lib/commands: []
-    foreach command read command-dir [
-        if attempt [ all [
-            system/options/default-suffix = suffix? command
-            cmd-header: load/header join command-dir command
-            found? find cmd-header/1/Needs 'bot-api
-            cmd-header/1/Role = 'command
-        ]] [
-            append lib/commands cmd: import/no-lib rejoin [command-dir command]
+sync-commands: func [ /local cmd-header err ] [
+    lib/commands: copy []
+    for-each command read command-dir [
+        if error? err: trap [ 
+            if all [
+                system/options/default-suffix = suffix? command
+                cmd-header: load/header join-of command-dir command
+                find cmd-header/1/Needs 'bot-api
+                cmd-header/1/Role = 'command
+            ][
+                append lib/commands cmd: import/no-lib rejoin [command-dir command]
+            ]
+        ][
+            probe err
         ]
     ]
 ]
 
-if not value? 'shrink [
-    shrink: load http://www.rebol.org/download-a-script.r?script-name=shrink.r
+sync-commands
+
+if not set? 'shrink [
+    shrink: load %../shrink.reb ; https://raw.githubusercontent.com/gchiu/rebolbot/master/shrink.reb
     eliza: make object! shrink/4
     eliza/rules: shrink/6
 ]
@@ -51,9 +62,12 @@ either exists? %bot-config.r [
     lib/low-rep-message: bot-config/low-rep-message
     bot-user: bot-config/bot-user
     bot-pass: bot-config/bot-pass
-    lib/ideone-user: bot-config/ideone-user
-    lib/ideone-pass: bot-config/ideone-pass
-    lib/ideone-url: bot-config/ideone-url
+
+;    dump bot-config
+; don't know the credentials
+;    lib/ideone-user: bot-config/ideone-user
+;    lib/ideone-pass: bot-config/ideone-pass
+;    lib/ideone-url: bot-config/ideone-url
     log-file: bot-config/log-file
 ] [
     lib/botname: "-- name me --"
@@ -90,7 +104,7 @@ lib/privileged-users: ["HostileFork" 211160 "Graham Chiu" 76852 "johnk" 1864998]
 orders-cache: copy [ ]
 cache-size: 6
 ; we have a cache of 6 orders to the bot - [ message-id [integer!] order [string!] ]
-append/dup orders-cache none cache-size * 2
+append/dup orders-cache _ cache-size * 2
 
 lastmessage-no: 8743137
 last-message-file: %lastmessage-no.r
@@ -101,7 +115,7 @@ if exists? last-message-file [
     ]
 ]
 
-?? lastmessage-no
+dump lastmessage-no
 
 so-chat-url: http://chat.stackoverflow.com/
 lib/profile-url: http://stackoverflow.com/users/
@@ -129,10 +143,10 @@ lib/unix-to-date: func [ unix [string! integer!]
 lib/from-now: func [ d [date!]][
     case [
         d + 7 < now [ d ]
-        d + 1 < now [ join now - d " days ago" ]
-        d + 1:00 < now [ join  to integer! divide difference now d 1:00 " hours ago" ]
-        d + 0:1:00 < now [ join to integer! divide difference now d 0:1:00 " minutes ago" ]
-        true [ join to integer! divide now/time - d/time 0:0:1 " seconds ago" ] 
+        d + 1 < now [ join-of now - d " days ago" ]
+        d + 1:00 < now [ join-of  to integer! divide difference now d 1:00 " hours ago" ]
+        d + 0:1:00 < now [ join-of to integer! divide difference now d 0:1:00 " minutes ago" ]
+        true [ join-of to integer! divide now/time - d/time 0:0:1 " seconds ago" ] 
     ]
 ]
 
@@ -152,10 +166,11 @@ lib/percent-encode: func [char [char!]] [
     char
 ]
 
+; why aren't we use the url-encode from webform?
 lib/url-encode: use [ch mk] [
     ch: charset ["-." #"0" - #"9" #"A" - #"Z" #"-" #"a" - #"z" #"~"]
     func [text [any-string!]] [
-        either parse/all text: form text [
+        either parse text: form text [
             any [
                 some ch | end | change " " "+" |
                 mk: (mk: lib/percent-encode mk/1)
@@ -168,7 +183,7 @@ lib/url-encode: use [ch mk] [
 ; updated to remove the /local pad
 lib/to-itime: func [
     {Returns a standard internet time string (two digits for each segment)}
-    time [time! number! block! none!]
+    time [time! number! block! blank!]
 ] [
     time: make time! time
     rejoin [
@@ -203,7 +218,7 @@ lib/to-markdown-code: func [ txt /local out something ][
     parse txt [ 
             some [ 
                 copy something to newline newline ( 
-                    append out join quadspace something
+                    append out join-of quadspace something
                     append out newline 
                 )
                 |
@@ -228,20 +243,51 @@ lib/login2so: func [email [email!] password [string!] chat-page [url!]
 	/local fkey root loginpage cookiejar result err configobj
 ][
 	configobj: make object! [fkey: copy "" bot-cookie: copy ""]
-	fkey: none
+	fkey: _
 	root: https://stackoverflow.com
 	; grab the first fkey from the login page
 	print "reading login page"
 	loginpage: to string! read https://stackoverflow.com/users/login
 	print "read ..."
+
+    if parse loginpage [thru "login-form" thru {action="} copy action to {"} thru "fkey" thru {value="} copy fkey to {"} thru {"submit-button"} thru {value="} copy login to {"} to end][
+        dump action
+        postdata: to-webform reduce ['fkey fkey 'email email 'password password 'submit-button login]
+        if error? err: trap [
+            print "posting credentials to stackoverflow"
+            result: to-string write rejoin [root action] postdata
+;           p: open join root action
+;           write p postdata
+        ][
+
+            probe words-of err
+            cookiejar: reform collect [ for-each cookie err/arg2/headers/set-cookie [ keep first split cookie " " ] ] ; trim the expires and domain parts
+            parse cookiejar [to "usr=" copy cookiejar to ";"]
+            result: write chat-page compose/deep [GET [cookie: (cookiejar)]]
+            ; dump result
+            result: to string! result
+            ; result: reverse decode 'markup result
+            ; now grab the new fkey for the chat pages
+            ; <input id="fkey" name="fkey" type="hidden" value="c3c12ca46034c3d6bd832df991528b92" />
+            fkey: _
+            parse result [ thru {name="fkey"} thru {value="} copy fkey to {"} to end ]
+        ]
+        configobj/fkey: fkey
+        configobj/bot-cookie: cookiejar
+    ]
+    dump configobj
+    return configobj
+comment {
+
 	if parse loginpage [thru "login-form" thru {action="} copy action to {"} thru "fkey" thru {value="} copy fkey to {"} thru {"submit-button"} thru {value="} copy login to {"} to end][
 		postdata: to-webform reduce ['fkey fkey 'email email 'password password 'submit-button login]
-		if error? err: try [
+        dump postdata
+		if error? err: trap [
 			print "posting"
 			result: to-string write join root action postdata
 		][
-                        cookiejar: reform collect [ foreach cookie err/arg2/headers/set-cookie [ keep first split cookie " " ] ] ; trim the expires and domain parts
-	                parse cookiejar [to "usr=" copy cookiejar to ";"]
+            cookiejar: reform collect [ foreach cookie err/arg2/headers/set-cookie [ keep first split cookie " " ] ] ; trim the expires and domain parts
+	        parse cookiejar [to "usr=" copy cookiejar to ";"]
 			result: write chat-page compose/deep [GET [cookie: (cookiejar)]]
 			result: reverse decode 'markup result
 			; now grab the new fkey for the chat pages
@@ -258,12 +304,13 @@ lib/login2so: func [email [email!] password [string!] chat-page [url!]
 		configobj/bot-cookie: cookiejar
 	]
 	configobj
+}
 ]
 
 lib/get-userid: func [ txt
     /local page userid err rule
 ][
-    userid: err: none
+    userid: err: _
     txt: copy ajoin [ {("} txt {")} ]
     rule: [ 
             thru "update_user("
@@ -276,11 +323,11 @@ lib/get-userid: func [ txt
             ) 
             to end 
     ]
-    if error? set/any 'err try [
+    if error? err: trap [
         page: to string! read html-url
         if not parse page rule [
             ; print "failed the parse"
-            lib/log join "parse failed for " txt
+            lib/log join-of "parse failed for " txt
         ]
     ][ lib/log mold/all err ]
     userid
@@ -300,13 +347,14 @@ lib/log: func [text][
     write/append log-file reform [ now/date now/time mold text newline ]
 ]
 
-lib/speak: func [message /local err] [
-    if error? set/any 'err try [
+lib/speak: function [message ] [
+    if error? err: trap [
         to string! write chat-target-url compose/deep copy/deep [
             POST
             [(header)]
             (rejoin ["text=" lib/url-encode message "&fkey=" auth-object/fkey])
         ]
+        done: true
     ] [
         mold err
     ]
@@ -340,7 +388,7 @@ $code}
     port/awake: func [event] [
         switch/default event/type [
            lookup [open event/port false ]
-           connect [write event/port to binary! join payload newline false]
+           connect [write event/port to binary! join-of payload newline false]
            wrote [read event/port false]
            read done [
             ; probe event/port/data
@@ -351,7 +399,7 @@ $code}
     either port? wait [ port timeout ][
         result
     ][  ; timeout
-        none
+        _
     ]
 ]
 
@@ -391,13 +439,13 @@ lib/reply: func [message-id text [string! block!]] [
     lib/speak ajoin [":" message-id " " text]
 ]
 
-process-dialect: funct [expression
+process-dialect: func [expression
 ] [
     default-rule: [
         ; default .. checks for a word and sends it to the check-keys
         opt '? [set search-key word! | set search-key string!] opt ['for set recipient word!] (
             lib/done: true
-            either found? recipient [
+            either word? recipient [
                 recipient: ajoin ["@" recipient]
             ] [
                 recipient: copy ""
@@ -407,36 +455,44 @@ process-dialect: funct [expression
     ]
 
     dialect-rule: collect [
-        foreach command lib/commands [
+        for-each command lib/commands [
             keep/only command/dialect-rule keep '|
         ]
     ]
-    insert tail insert dialect-rule quote ((recipient: none)) default-rule
+    insert tail insert dialect-rule quote ((recipient: _)) default-rule
     lib/done: false
 
-    if error? err: try [
-        ; what to do about illegal rebol values eg @Graham
-        if error? err2: try [
+    if error? err: trap [
+
+        ; traps illegal rebol values eg @Graham
+        if error? err2: trap [
             to block! expression
         ] [
-            if find mold err2 {arg1: "email"} [
+            if all [
+                in err2 'arg1
+                in err2 'arg2 
+                "email" = get in err2 'arg1
+            ][
                 replace/all expression "@" ""
             ]
         ]
-        probe parse expression: to block! expression dialect-rule
+        unless parse expression: to block! expression dialect-rule [
+            print "was not parsed by dialect-rule"
+        ]
         unless lib/done [
             response: lib/reply lib/message-id eliza/match mold expression
             if found? find response "code: 513" [
                 ; Very likely that the cookie has expired - try to log in again
                 lib/log "Re-authenticating ..."
                 auth-object: lib/login2so bot-config/bot-user bot-config/bot-pass bot-config/bot-room
-                lib/log "Loged in"
+                lib/log "Logged in"
             ]
         ]
     ] [
         ; sends error
         lib/log mold err
         ; now uses Eliza
+        print "trying eliza instead of dumping not understood command "
         lib/reply lib/message-id eliza/match mold expression
     ]
 ]
@@ -445,11 +501,11 @@ process-key-search: func [expression
     /local understood search-key person
 ] [
     understood: false
-    set [search-key person] parse expression none
+    set [search-key person] parse expression _
     unless all [
         person
         parse person ["@" to end]
-    ] [person: none]
+    ] [person: _]
     ; remove punctuation of ! and ?
     if find [#"!" #"?"] last search-key [remove back tail search-key]
     foreach [key data] lib/bot-expressions [
@@ -466,13 +522,13 @@ process-key-search: func [expression
 ]
 
 bot-cmd-rule: [
-    [
+    [   
         lib/botname some space
-        copy key to end
+        copy key to end (print "got key")
         |
         "rebol3> " any space copy key to end ( insert head key "do " )
         |
-        ">> " any space copy key to end ( either not find key newline [ insert head key "do " ][ key: ""] )
+        ">> " (print ">> rule") any space copy key to end ( either not find key newline [ insert head key "do " ][ key: copy ""] )
         |
         "rebol2> " any space copy key to end ( insert head key "do/2 " )
         ;|
@@ -480,8 +536,13 @@ bot-cmd-rule: [
     ]
     ; process-key-search trim key
     (
+        print "completed rules"
         replace/all key <br> newline trim key
-        if not empty? key [ process-dialect key ]
+        dump key
+        if not empty? key [ 
+            print "processing dialect-rule"
+            process-dialect key
+        ]
     )
 ]
 
@@ -508,11 +569,11 @@ message-rule: [
     )
 ]
 
-call-command-pulse: funct[] [
-    foreach command lib/commands [
+call-command-pulse: function [] [
+    for-each command lib/commands [
         if all [
             callback: find words-of command 'pulse-callback
-            type? :callback = function!
+            function? :callback 
         ] [command/pulse-callback]
     ]
 ]
@@ -537,25 +598,47 @@ header: compose [
 
 cnt: 0 ; rescan for new users every 10 iterations ( for 5 seconds, that's 50 seconds )
 bot-message-cnt: 0 ; stop the bot monopolising the room
+
+; test speak
+lib/speak "Hi guys, I'm back again"
+
+; eval loop
 forever [
     ++ cnt
-    if error? set/any 'errmain try [
+    if error? errmain: trap [
         result: load-json/flat lib/read-messages lib/no-of-messages
         messages: result/2
         ; now skip thru each message and see if any unread
-        foreach msg messages [
-            content: lib/user-name: none lib/message-id: 0
+comment {
+msg: => [
+    <event_type> 1
+    <time_stamp> 1494756394
+    <content> {<div class='full'>@RebolBot <br> print &quot;hello&quot; <br> print &quot;goodbye&quot;</div>}
+    <user_id> 76852
+    <user_name> "Graham Chiu"
+    <room_id> 291
+    <message_id> 37088369
+    <parent_id> 37088353
+]
+}
+
+        for-each msg messages [
+            content: lib/user-name: _ lib/message-id: 0
             if not parse msg [some message-rule] [
                 print "failed to parse message"
             ]
-            content: trim decode-xml content
-
+            if error? trap [
+                ; temporary until altxml is correctly ported to ren-c
+                content: trim decode-xml content
+            ][
+                content: copy ""
+            ]
             if all [
                 lib/timestamp < lib/two-minutes-ago 
-                not exists? join lib/storage lib/message-id
+                not exists? join-of lib/storage lib/message-id
             ][
                 ; print [ "saving " lib/message-id ]
-                write join lib/storage lib/message-id to-json msg
+                write join-of lib/storage lib/message-id to-json msg
             ]
             ; failsafe counter
             if equal? remove copy bot-config/botname lib/user-name [ ++ bot-message-cnt ]
@@ -563,14 +646,13 @@ forever [
 
             ; new message?
             changed: false
-            
             if any [
                 ; new directive
                 lib/message-id > lastmessage-no 
                 ; old directive now edited changed
                 all [
                     ; we found this order before
-                    changed: find orders-cache lib/message-id ; none | series               
+                    something? changed: find orders-cache lib/message-id ; none | series  
                     content <> select orders-cache first changed
                 ]
             ][  ; only gets here if a new order, or, if an old order that was updated
@@ -578,36 +660,55 @@ forever [
                 ; save new or updated order
                 repend orders-cache [lib/message-id content]
                 print "New message"
-                
                 save last-message-file lastmessage-no: lib/message-id
                 ; {<div class='full'>@RebolBot /x a: "Hello" <br> print a</div>}
                 ; <content> {<div class='full'>@rebolbot <br> print &quot;ehll&quot;</div>}
+
+comment {
+msg: => [
+    <event_type> 1
+    <time_stamp> 1494756394
+    <content> {<div class='full'>@RebolBot <br> print &quot;hello&quot; <br> print &quot;goodbye&quot;</div>}
+    <user_id> 76852
+    <user_name> "Graham Chiu"
+    <room_id> 291
+    <message_id> 37088369
+    <parent_id> 37088353
+]
+}
+
+                ; strip out all html stuff to get the content
                 parse content [
                     [ <div class='full'> | <pre class='full'> ]
                     opt some space
-                    copy content to [ "</div>" | "</pre>" ]
+                    copy content: to [ "</div>" | "</pre>" ]
                     (
-                        if parse ?? content [any space lib/botname [#" " <br> | "^M" ] to end] [
-                            ; treat a newline after botname as a do-rule
+                        if parse content [any space lib/botname [#" " <br> | "^M" ] to end] [
+                            ; treat a newline after botname as a do-rule]
                             replace content <br> "do "
                             replace content "^M^/" " do "
                         ]
                         replace/all content <br> newline trim content
                     )
                 ]
-                if parse content bot-cmd-rule [
-                    print "message for me, we should have dealt with it in the parse rule"
+                either parse content bot-cmd-rule [
+                    print "message for me, we should have dealt with it in the parse rule?"
+                ][
+                    print "working as expected"
                 ]
             ]
-        ]
+        ] ; end of for-each loop
     ] [
+        print "jumped to error handler"
         probe mold errmain
     ]
     if cnt >= 10 [
         cnt: 0
+        print "calling command pulse"
         call-command-pulse
     ]
     bot-message-cnt: 0
+    print "sync-commands"
     sync-commands
     attempt [ wait lib/pause-period ]
 ]

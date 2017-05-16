@@ -131,7 +131,7 @@ make-http-request: func [
 	method [word! string!] "E.g. GET, HEAD, POST etc."
 	target [file! string!] {In case of string!, no escaping is performed (eg. useful to override escaping etc.). Careful!}
 	headers [block!] "Request headers (set-word! string! pairs)"
-	content [any-string! binary! none!] {Request contents (Content-Length is created automatically). Empty string not exactly like none.}
+	content [any-string! binary! blank!] {Request contents (Content-Length is created automatically). Empty string not exactly like none.}
 	/local result
 ] [
 	result: rejoin [

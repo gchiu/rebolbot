@@ -10,7 +10,7 @@ REBOL [
 
 help-string: {show [ me ][ recent ] links (by|from) user "shows links posted in messages by user"}
 
-username: none
+username: _
 
 dialect-rule: [
     opt 'show opt 'me opt 'recent 'links ['by | 'from] [set username word! | set username string!] (

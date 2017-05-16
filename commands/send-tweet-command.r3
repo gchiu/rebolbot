@@ -12,7 +12,7 @@ Options: [private]
 help-string: 
 {tweet [12345678 | "string"] "Sends tweet of message number or string as @rebolbot"}
 
-user-id: user-string: text: existing-message-id: none
+user-id: user-string: text: existing-message-id: _
 twitter-user: "rebolbot"
 room-admins: []
 attempt [
@@ -32,7 +32,7 @@ dialect-rule: [
       set existing-message-id number! (
         either find room-admins person-id [
           ; privileged user
-         reply message-id join "Sending a tweet of message: " existing-message-id
+         reply message-id join-of "Sending a tweet of message: " existing-message-id
           twitter/as twitter-user
    	  twitter/update/override lib/read-message existing-message-id
         ] [
@@ -43,7 +43,7 @@ dialect-rule: [
       set text string! (
         either find room-admins person-id [
           ; privileged user
-          reply message-id join "Sending this as a tweet: " text
+          reply message-id join-of "Sending this as a tweet: " text
           twitter/as twitter-user
           twitter/update/override text
         ] [

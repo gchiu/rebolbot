@@ -25,7 +25,7 @@ dialect-rule: [
     )
 ]
 
-process-blog: funct [
+process-blog: function [
 ] [
     blog-comment-data: copy []
     ;;blog-comment-data-spec: [
@@ -71,7 +71,7 @@ process-blog: funct [
                     remove-each tag comment-content: decode 'markup to binary! comment-content [tag? tag]
                     comment-content: head clear skip reform comment-content comment-length
                     comment-content: copy/part comment-content any [ find/last comment-content " " length? comment-content ]
-                    speak reform [ name "-" article comment-content "..." join base-article-link (to string! article-link) ]
+                    speak reform [ name "-" article comment-content "..." join-of base-article-link (to string! article-link) ]
                 ]
             ]
         ]

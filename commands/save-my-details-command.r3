@@ -10,14 +10,14 @@ REBOL [
 
 help-string: {save my details url! [ timezone [time!]] "saves your details with url +/- timezone"}
 
-user-url: user-timezone: none
+user-url: user-timezone: _
 
 dialect-rule: [
     (print "save rule"
         trim/all user-name
     )
     'save 'my 'details set user-url url! (
-                add-user-details user-url none
+                add-user-details user-url _
                 done: true
     )
     any [ set user-timezone time! ] (
@@ -33,7 +33,7 @@ was-about-users: []
 either exists? notable-persons-file [
     about-users: load notable-persons-file
     ; check for old style file
-    if url! = type? about-users/2 [
+    if url! = type-of about-users/2 [
         use [tmp tz rec] [
             tmp: copy about-users
             clear head about-users
@@ -41,7 +41,7 @@ either exists? notable-persons-file [
                 append about-users user
                 tz: either rec: select was-about-users user [
                     rec/2
-                ] [none]
+                ] [_]
                 repend/only about-users [url tz]
             ]
             save notable-persons-file about-users
@@ -51,7 +51,7 @@ either exists? notable-persons-file [
     about-users: copy was-about-users
 ]
 
-add-user-details: func [user-url timezone [time! none!]
+add-user-details: func [user-url timezone [time! blank!]
     /local rec person
 ] [
     attempt [

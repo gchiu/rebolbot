@@ -14,7 +14,7 @@ keys "returns known keys"
 remove key "removes key (requires authorized user)"
 find descript [string! word!] "shows keys with description containing descript"}
 
-expression: findstring: none
+expression: findstring: _
 
 dialect-rule: [
     ; save-key-rule

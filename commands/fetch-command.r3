@@ -12,13 +12,13 @@ REBOL [
 
 help-string: {fetch id "retrieves stored JSON message by its message-id"}
 
-target: err: none
+target: err: _
 
 dialect-rule: [
     'fetch set target integer! (
         done: true
-        either exists? join storage target [
-            reply message-id to string! read join storage target
+        either exists? join-of storage target [
+            reply message-id to string! read join-of storage target
         ][
             reply message-id ajoin [ "Sorry mate, message " target " is not in my store" ]
         ]

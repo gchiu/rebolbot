@@ -9,8 +9,10 @@ REBOL [
     Rights: http://creativecommons.org/licenses/by-nc-sa/2.0/
     File: %twitter.r3
     Needs: [
-        http://reb4.me/r3/altwebform
-        http://reb4.me/r3/altjson
+        ; http://reb4.me/r3/altwebform
+        %altwebform.reb
+        https://raw.githubusercontent.com/r3n/renclib/master/modules/json.reb
+        ; http://reb4.me/r3/altjson
     ]
     Purpose: {
         REBOL script to access and use the Twitter OAuth API.
@@ -19,8 +21,9 @@ REBOL [
         This function will be updated when https is available (for Linux)
     }
 ]
+
 ; Local words
-authorized-users: twitter-config: twitter-url: settings: users: none
+authorized-users: twitter-config: twitter-url: settings: users: _
 
 twitter: context bind [
     as: func [
@@ -65,11 +68,11 @@ twitter: context bind [
     ][ 
         case [
             issue? query [query: mold query]
-            email? query [query: join "@" query/host]
+            email? query [query: join-of "@" query/host]
         ]
         set params reduce [query offset count]
         either attempt [
-            result: to string! read join http://search.twitter.com/search.json? to-webform params
+            result: to string! read join-of http://search.twitter.com/search.json? to-webform params
         ] load-result error/connection
     ]
 
@@ -97,7 +100,7 @@ twitter: context bind [
         unless persona/name error/credentials
 
         set options reduce [
-            none
+            _
             all [count min 200 abs count]
             offset
         ]
@@ -126,7 +129,7 @@ twitter: context bind [
         twitter-config: object load %twitter-config.r3
         twitter-url: twitter-config/twitter
         settings: make context [
-            consumer-key: consumer-secret: users: none
+            consumer-key: consumer-secret: users: _
         ] [ 
             consumer-key: twitter-config/consumer-key
             consumer-secret: twitter-config/consumer-secret
@@ -137,11 +140,11 @@ twitter: context bind [
         halt
     ]
 
-    options: context [screen_name: count: page: none]
-    params: context [q: page: rpp: none]
-    message: context [status: in_reply_to_status_id: none]
+    options: context [screen_name: count: page: _]
+    params: context [q: page: rpp: _]
+    message: context [status: in_reply_to_status_id: _]
 
-    result: none
+    result: _
     load-result: [load-json result]
 
     error: [
@@ -151,23 +154,23 @@ twitter: context bind [
     ]
 
     persona: context [
-        id: name: none
-        token: secret: none
+        id: name: _
+        token: secret: _
     ]
 
     oauth!: context [
-        oauth_callback: none
+        oauth_callback: _
         oauth_consumer_key: settings/consumer-key
-        oauth_token: oauth_nonce: none
+        oauth_token: oauth_nonce: _
         oauth_signature_method: "HMAC-SHA1"
-        oauth_timestamp: none
+        oauth_timestamp: _
         oauth_version: 1.0
-        oauth_verifier: oauth_signature: none
+        oauth_verifier: oauth_signature: _
     ]
 
     send: use [make-nonce timestamp sign][
         make-nonce: does [
-            enbase/base checksum/secure to binary! join now/precise settings/consumer-key 64
+            enbase/base checksum/secure to binary! join-of now/precise settings/consumer-key 64
         ]
 
         timestamp: func [/for date [date!]][
@@ -183,8 +186,8 @@ twitter: context bind [
         sign: func [
             method [word!]
             lookup [url!]
-            oauth [object! block! none!]
-            params [object! block! none!]
+            oauth [object! block! blank!]
+            params [object! block! blank!]
             /local out
         ][
             out: copy ""
@@ -211,7 +214,7 @@ twitter: context bind [
                 ]
             ]
 
-            join "OAuth" next out
+            join-of "OAuth" next out
         ]
 
         send: func [
@@ -265,7 +268,7 @@ twitter: context bind [
             /local response verifier
         ][
             request: any [:request :ask]
-            set persona none
+            set persona _
 
             response: load-webform send/auth 'post request-broker make oauth! [
                 oauth_callback: "oob"
@@ -274,7 +277,7 @@ twitter: context bind [
             persona/token: response/oauth_token
             persona/secret: response/oauth_token_secret
 
-            browse join twitter-url/:verification-page response/oauth_token 
+            browse join-of twitter-url/:verification-page response/oauth_token 
             unless verifier: request "Enter your PIN from Twitter: " [
                 make error! "Not a valid PIN"
             ]

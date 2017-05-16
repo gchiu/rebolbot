@@ -12,7 +12,7 @@ REBOL [
 
 help-string: {source name  "provides Rebol source for named function"}
 
-target: err: none
+target: err: _
 
 dialect-rule: [
     'source set target word! (

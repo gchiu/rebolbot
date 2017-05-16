@@ -10,12 +10,14 @@ REBOL [
 
 help-string: {(do|do/2|do/red|do/boron|do/echo) expression "evaluates Rebol/Rebol-like expression in a sandboxed interpreter. echo repeats exact command sent to r3"}
 
-expression: target: none
+expression: target: _
 
 dialect-rule: [
     [ ; do-rule
-        ["/x" | 'do] copy expression to end
+        [/x | 'do] copy expression to end
         (done: true
+            print/eval ["attempt evaluation on Google cloud " expression]
+            ; lib/speak "Attempting evaluation on Google cloud"
             attempt [
                 evaluate-expression mold/only/all expression
             ]
@@ -25,6 +27,7 @@ dialect-rule: [
         'do/echo copy expression to end
         (done: true
             attempt [
+                print "evaluating echo expression"
                 evaluate-expression/echo mold/only/all expression
             ]
         )
@@ -33,6 +36,7 @@ dialect-rule: [
         ['do/2 | 'do/rebol2] copy expression to end
         (done: true
             attempt [
+                print "evaluating rebol2 expression"
                 evaluate-expression/r2 mold/only expression
             ]
         )
@@ -41,6 +45,7 @@ dialect-rule: [
         'do/boron copy expression to end
         (done: true
             attempt [
+                print "evaluating boron expression"
                 evaluate-expression/boron mold/only expression
             ]
         )
@@ -49,6 +54,7 @@ dialect-rule: [
         'do/red copy expression to end
         (done: true
             attempt [
+                print "evaluating red-lang expression"
                 evaluate-expression/red mold/only expression
             ]
         )
@@ -64,7 +70,7 @@ dialect-rule: [
 
 ;- configuration urls
 remote-execution-url: [
-    rebol3 http://tryrebol.esperconsultancy.nl/do/REBOL
+    rebol3 http://104.196.25.210/cgi-bin/eval
     rebol2 http://tryrebol.esperconsultancy.nl/do/REBOL-2
     boron http://tryrebol.esperconsultancy.nl/do/Boron
     red http://tryrebol.esperconsultancy.nl/do/Red
@@ -98,7 +104,7 @@ $code}
     port/awake: func [event] [
         switch/default event/type [
            lookup [open event/port false ]
-           connect [write event/port to binary! join payload newline false]
+           connect [write event/port to binary! join-of payload newline false]
            wrote [read event/port false]
            read done [
             ; probe event/port/data
@@ -109,7 +115,7 @@ $code}
     either port? wait [ port timeout ][
         result
     ][  ; timeout
-        none
+        _
     ]
 ]
 
@@ -144,9 +150,11 @@ evaluate-expression: func [expression
     /boron "boron"
     /red "RED"
     /echo "echo"
-    /local output html error-url exp execute-url
+    /local output html error-url exp execute-url speak
 ] [
-    output: html: error-url: none
+    print "entered evaluate-expression"
+    output: html: error-url: _
+    dump remote-execution-url
     execute-url: select remote-execution-url
     case [
         r2 ['rebol2]
@@ -157,9 +165,10 @@ evaluate-expression: func [expression
     ]
 
     print ["attempting evaluation at: " execute-url]
+    dump expression
     html: to string! write execute-url compose [ POST (expression) ]
 ;; -- this begins the change from using native http
-    ; if none? html: mini-http execute-url 'POST form expression 60 [
+    ; if blank? html: mini-http execute-url 'POST form expression 60 [
     ;   speak "tryrebol server timed out"
     ;   return
     ; ]
@@ -170,22 +179,30 @@ evaluate-expression: func [expression
     ;   return
     ; ]
 ;; --- and ends the change from using native http scheme    
-    parse html [thru <span> thru <pre> copy output to </pre>]
-    output: decode-xml output
+
+    parse html [thru <rebol> copy output: to </rebol>]
+    ; output: decode-xml output
     ; if an error, remove part of the error string and parse out the help page
+
     if find output "*** ERROR" [
         replace output "try do either either either -apply-" ""
         parse html [thru {<a href="} copy error-url to {"}]
     ]
     ; indent 4 spaces ... needed for markup to be code
     replace/all output "^/" "^/    "
-    speak ajoin [
-        "    ; Brought to you by: " http://try.rebol.nl newline
-        either found? error-url [
-            ajoin ["    ; " error-url newline "    "]
-        ] [""]
-        either echo [ ajoin [ "    >> " trim expression newline ] ] [ "" ]
+
+    dump output
+
+    lib/speak ajoin [
+        ; "    ; Brought to you by Google Compute Engine" newline
+        "google$ " dump: expression
+        either blank? error-url
+        [ "" ]
+        [ ajoin ["    ; " error-url newline "    "]]
+        either echo 
+        [ ajoin [ "    >> " trim expression newline ] ]
+        [ "" ]
         "    " output
     ]
-    ?? expression
+    print "finished speak"
 ]

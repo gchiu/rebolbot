@@ -19,5 +19,5 @@ show-all-users: func [
     foreach [user address] about-users [
         append tmp user
     ]
-    reply message-id join "I know something of the following people: " form sort tmp
+    reply message-id join-of "I know something of the following people: " form sort tmp
 ]

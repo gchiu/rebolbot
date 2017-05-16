@@ -12,7 +12,7 @@ REBOL [
 
 help-string: {search key "retrieves all messages in store that contains key"}
 
-target: none
+target: _
 
 message-template: {<div class="monologue user-$user_id">
     <div class="signature"><div class="tiny-signature">
@@ -52,7 +52,7 @@ dialect-rule: [
                         break
                     ]
                     if not dir? file [
-                        json: load-json to string! read join storage file
+                        json: load-json to string! read join-of storage file
 
                         if all [
                             in json 'content
@@ -77,12 +77,12 @@ dialect-rule: [
 						]
 					]
 					; and now create the html - this needs some config
-					html-template: to string! read join webroot %chat-search.html
+					html-template: to string! read join-of webroot %chat-search.html
 					outstring: reword html-template reduce [
 						'content html
 						'number length? out
 					]
-					filepath: rejoin [ webroot filename: join checksum to binary! outstring %.html ]
+					filepath: rejoin [ webroot filename: join-of checksum to binary! outstring %.html ]
 					write filepath outstring
 				
                     reply message-id ajoin [ {[Query results for } target {](http://www.rebol.info/} filename {)} ]

@@ -10,7 +10,7 @@ REBOL [
 
 help-string: {who is user "returns user details and page"}
 
-user: none
+user: _
 
 dialect-rule: [
     [some ['who 'is | 'whois | 'who 'the 'dickens 'is] copy user to end
@@ -41,7 +41,7 @@ show-user-page: func [user /local data known timezone gmt err userid] [
                 wait 2
                 speak ajoin [ profile-url userid "/" url-encode to-dash user]
             ][
-                log ajoin [ "Type? " type? userid " of " userid ]
+                log ajoin [ "Type? " type-of userid " of " userid ]
             ]
         ]
         if not known [

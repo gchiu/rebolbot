@@ -10,6 +10,6 @@ REBOL [
 
 help-string: {(hi|hello|goodnight|goodbye|bye|[good][night|morning|afternoon|evening]) some-text "returns a greeting to the user who greeted bot"}
 
-greeting: none
+greeting: _
 
 dialect-rule: [copy greeting [ 'hello | 'hi | 'goodnight | 'goodbye | 'bye | any 'good [ 'night | 'morning | 'afternoon | 'evening ] ] (reply message-id [greeting " to you too"] done: true)]

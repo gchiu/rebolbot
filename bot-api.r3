@@ -55,7 +55,7 @@ REBOL [
 
 ; The name of the bot
 ; Configured in bot-config.r
-botname: none
+botname: _
 
 ; The command modules loaded by the bot
 commands: []
@@ -70,10 +70,10 @@ greet-message: ""
 low-rep-message: ""
 
 ; The number of messages to fetch at a time
-no-of-messages: none
+no-of-messages: _
 
 ; The maximum number of characters allowed by the chat system
-chat-length-limit: none
+chat-length-limit: _
 
 ; Users who have special privileges with the bot (e.g. remove keys)
 ; privileged-users: ["HostileFork" 211160 "Graham Chiu" 76852 "johnk" 1864998]
@@ -98,15 +98,15 @@ bot-expressions: []
 done: false
 
 ; The parse rule for user IDs
-id-rule: none
+id-rule: _
 
 ; The main chat URL with highlight turned off
-html-url: none
+html-url: _
 
 ; The main chat URL
-referrer-url: none
+referrer-url: _
 
-ideone-url: ideone-pass: ideone-user: profile-url: person-id: user-name: message-id: parent-id: timestamp: storage: none
+ideone-url: ideone-pass: ideone-user: profile-url: person-id: user-name: message-id: parent-id: timestamp: storage: _
 
 get-userid: func [txt][]
 
@@ -140,7 +140,7 @@ two-minutes-ago: does []
 
 to-itime: func [
     {Returns a standard internet time string (two digits for each segment)}
-    time [time! number! block! none!]
+    time [time! number! block!]
 ] []
 
 to-idate: func [

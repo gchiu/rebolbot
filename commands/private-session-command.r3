@@ -10,7 +10,7 @@ REBOL [
 
 help-string: {private session [ in ] room-number "Starts a private session with the bot in another room."}
 
-private-room: none
+private-room: _
 
 dialect-rule: [
     'private 'session opt 'in set private-room integer! (
