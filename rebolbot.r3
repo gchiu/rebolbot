@@ -45,7 +45,7 @@ sync-commands: func [ /local cmd-header err ] [
 sync-commands
 
 if not set? 'shrink [
-    shrink: load %../shrink.reb ; https://raw.githubusercontent.com/gchiu/rebolbot/master/shrink.reb
+    shrink: load %shrink.reb ; https://raw.githubusercontent.com/gchiu/rebolbot/master/shrink.reb
     eliza: make object! shrink/4
     eliza/rules: shrink/6
 ]
