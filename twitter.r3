@@ -10,8 +10,8 @@ REBOL [
     File: %twitter.r3
     Needs: [
         ; http://reb4.me/r3/altwebform
-        %altwebform.reb
-        https://raw.githubusercontent.com/r3n/renclib/master/modules/json.reb
+        ; %altwebform.reb
+        ; https://raw.githubusercontent.com/r3n/renclib/master/modules/json.reb
         ; http://reb4.me/r3/altjson
     ]
     Purpose: {
@@ -21,6 +21,9 @@ REBOL [
         This function will be updated when https is available (for Linux)
     }
 ]
+
+import <webform>
+import <json>
 
 ; Local words
 authorized-users: twitter-config: twitter-url: settings: users: _
