@@ -642,7 +642,7 @@ msg: => [
             ]
             ; failsafe counter
             if equal? remove copy bot-config/botname lib/user-name [ ++ bot-message-cnt ]
-            if bot-message-cnt > 7 [ quit/return 42 ] ; if the last 8 messages were by the bot then die
+            if bot-message-cnt > 5 [ quit/with 42 ] ; if the last 8 messages were by the bot then die
 
             ; new message?
             changed: false
