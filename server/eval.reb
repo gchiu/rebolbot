@@ -1,10 +1,10 @@
-#!/sbin/r3 -cs
+#!#!/sbin/r3 -cs
 REBOL [
     title: "Rebol safe evaluation service"
     file: %eval.reb
     author: "Graham Chiu"
     date: 14-May-2017
-    version: 0.0.1
+    version: 0.0.5
     notes: {
         attempt to provide a partially safe environment for rebol evaluation
         though will not survive a determined rebol hacker
@@ -74,31 +74,44 @@ hijack 'read adapt 'old-read [
 ; disable disk writes
 old-write: copy :write
 hijack 'write adapt 'old-write [
-    if file? :destination [
+    if any [
+        file? :destination 
+        all [block? :destination 'file = select destination 'scheme] 
+    ][
         fail "Not allowed to write to file when in jail!"
+    ]
+]
+
+; disable disk open
+old-open: copy :open
+hijack 'open adapt 'old-open [
+    if any [
+        file? :spec 
+        all [block? :spec 'file = select spec 'scheme] 
+    ][
+        fail "Not allowed to open disk files while in jail!"
     ]
 ]
 
 for-each w paranoid: [
     old-write
     old-read
+    old-open
     call
     cd change-dir
     ls list-dir 
-    rm delete
+    rm
     make-routine ; FFI
-][ unset w]
+][unset w]
 
 ; check coming from chat
-if "stackoverflow.com" <> remote-client: read join-of dns:// cgi/REMOTE_ADDR [
-    dump remote-client
-    fail "Execution only allowed from stackoverflow chat"
+if cgi/REMOTE_ADDR <> read dns://rebol.info [
+    ; print <rebol> | dump remote-client | fail "Execution only allowed from rebolbot's server </rebol>"
 ]
-
-print <rebol>
 
 if cgi/REQUEST_METHOD = "GET" [
     if parse cgi/QUERY_STRING ["eval=" copy doable: to end][
+        print <rebol>
         doable: dehex doable
         dump doable
         if error? error: trap [
@@ -106,6 +119,25 @@ if cgi/REQUEST_METHOD = "GET" [
         ][
             probe error
         ]
+        print </rebol>
     ]
 ]
-print </rebol>
+
+if cgi/REQUEST_METHOD = "POST" [
+    cgidata: copy to binary! ""
+    while [
+        all [
+           not error? trap [data: read system/ports/input]
+           0 < probe length data
+        ]
+    ][
+        append cgidata data
+    ]
+    print <rebol>
+    if error? err: trap [
+        print do cgidata
+    ][
+        print mold err
+    ]
+    print </rebol>
+]
