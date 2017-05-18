@@ -71,7 +71,7 @@ dialect-rule: [
 ;- configuration urls
 remote-execution-url: [
     rebol3 http://104.196.25.210/cgi-bin/eval
-    rebol2 http://tryrebol.esperconsultancy.nl/do/REBOL-2
+    rebol2 http://104.196.25.210/cgi-bin/evalr2
     boron http://tryrebol.esperconsultancy.nl/do/Boron
     red http://tryrebol.esperconsultancy.nl/do/Red
 ]
@@ -194,8 +194,7 @@ evaluate-expression: func [expression
     dump output
 
     lib/speak ajoin [
-        ; "    ; Brought to you by Google Compute Engine" newline
-        "google$ " dump: expression
+        if r2 ["~rebol2> "] else ["~r3> "] dump: expression
         either blank? error-url
         [ "" ]
         [ ajoin ["    ; " error-url newline "    "]]
