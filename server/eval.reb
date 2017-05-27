@@ -135,7 +135,10 @@ if cgi/REQUEST_METHOD = "POST" [
     ]
     print <rebol>
     if error? err: trap [
-        print do cgidata
+        attempt [result: do cgidata]
+        if set? 'result [
+             print result
+        ]
     ][
         print mold err
     ]
