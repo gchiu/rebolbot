@@ -4,7 +4,7 @@ REBOL [
     file: %eval.reb
     author: "Graham Chiu"
     date: 14-May-2017
-    version: 0.0.5
+    version: 0.0.7
     notes: {
         attempt to provide a partially safe environment for rebol evaluation
         though will not survive a determined rebol hacker
@@ -135,9 +135,15 @@ if cgi/REQUEST_METHOD = "POST" [
     ]
     print <rebol>
     if error? err: trap [
-        attempt [result: do cgidata]
+        ; print/eval 
+        result: do cgidata
         if set? 'result [
-             print result
+            ; a value returned by the action
+            either block? :result [
+                print mold :result
+            ][
+                print result
+            ]
         ]
     ][
         print mold err
