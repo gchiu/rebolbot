@@ -239,72 +239,40 @@ lib/to-dash: func [ username ][
     username
 ]
 
-lib/login2so: func [email [email!] password [string!] chat-page [url!]
-	/local fkey root loginpage cookiejar result err configobj
+lib/login2so: function [
+    {login to stackoverflow and return an authentication object}
+    email [email!] password [string!] chat-page [url!]
 ][
-	configobj: make object! [fkey: copy "" bot-cookie: copy ""]
-	fkey: _
-	root: https://stackoverflow.com
-	; grab the first fkey from the login page
-	print "reading login page"
-	loginpage: to string! read https://stackoverflow.com/users/login
-	print "read ..."
-
+    configobj: make object! [fkey: copy "" bot-cookie: copy ""]
+    fkey: _
+    root: https://stackoverflow.com
+    ; grab the first fkey from the login page
+    print "reading login page"
+    loginpage: to string! read https://stackoverflow.com/users/login
+    print "read ..."
     if parse loginpage [thru "login-form" thru {action="} copy action to {"} thru "fkey" thru {value="} copy fkey to {"} thru {"submit-button"} thru {value="} copy login to {"} to end][
-        dump action
+        ; dump action
         postdata: to-webform reduce ['fkey fkey 'email email 'password password 'submit-button login]
-        if error? err: trap [
-            print "posting credentials to stackoverflow"
+        print "posting login data"
+        if error? err2: trap [
             result: to-string write rejoin [root action] postdata
-;           p: open join root action
-;           write p postdata
         ][
-
-            probe words-of err
-            cookiejar: reform collect [ for-each cookie err/arg2/headers/set-cookie [ keep first split cookie " " ] ] ; trim the expires and domain parts
+            net-log "Entering error handler for err2"
+            probe words-of err2
+            cookiejar: reform collect [ for-each cookie err2/arg2/headers/set-cookie [ keep first split cookie " " ] ] ; trim the expires and domain parts
             parse cookiejar [to "usr=" copy cookiejar to ";"]
+            net-log "now GET first time - redirects so error err2 handler takes over"
             result: write chat-page compose/deep [GET [cookie: (cookiejar)]]
-            ; dump result
+            net-log "after posting *************"
             result: to string! result
-            ; result: reverse decode 'markup result
-            ; now grab the new fkey for the chat pages
-            ; <input id="fkey" name="fkey" type="hidden" value="c3c12ca46034c3d6bd832df991528b92" />
-            fkey: _
             parse result [ thru {name="fkey"} thru {value="} copy fkey to {"} to end ]
+            ;dump fkey
         ]
+        if blank? fkey [fail "No Fkey so can not login"]
         configobj/fkey: fkey
         configobj/bot-cookie: cookiejar
     ]
-    dump configobj
-    return configobj
-comment {
-
-	if parse loginpage [thru "login-form" thru {action="} copy action to {"} thru "fkey" thru {value="} copy fkey to {"} thru {"submit-button"} thru {value="} copy login to {"} to end][
-		postdata: to-webform reduce ['fkey fkey 'email email 'password password 'submit-button login]
-        dump postdata
-		if error? err: trap [
-			print "posting"
-			result: to-string write join root action postdata
-		][
-            cookiejar: reform collect [ foreach cookie err/arg2/headers/set-cookie [ keep first split cookie " " ] ] ; trim the expires and domain parts
-	        parse cookiejar [to "usr=" copy cookiejar to ";"]
-			result: write chat-page compose/deep [GET [cookie: (cookiejar)]]
-			result: reverse decode 'markup result
-			; now grab the new fkey for the chat pages
-			foreach tag result [
-				if tag? tag [
-					if parse tag [thru "fkey" thru "hidden" thru "value" thru {"} copy fkey to {"} to end][
-						fkey: to string! fkey
-						break
-					]
-				]
-			]
-		]
-		configobj/fkey: fkey
-		configobj/bot-cookie: cookiejar
-	]
-	configobj
-}
+    configobj
 ]
 
 lib/get-userid: func [ txt
