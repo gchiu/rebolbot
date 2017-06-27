@@ -261,7 +261,7 @@ lib/login2so: function [
             probe words-of err2
             cookiejar: reform collect [ for-each cookie err2/arg2/headers/set-cookie [ keep first split cookie " " ] ] ; trim the expires and domain parts
             parse cookiejar [to "usr=" copy cookiejar to ";"]
-            net-log "now GET first time - redirects so error err2 handler takes over"
+            net-log "now the first GET"
             result: write chat-page compose/deep [GET [cookie: (cookiejar)]]
             net-log "after posting *************"
             result: to string! result
