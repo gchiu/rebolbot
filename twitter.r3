@@ -25,6 +25,9 @@ Rebol [
 import <webform>
 import <json>
 
+; can't find it otherwise!
+append lib compose [url-encode: (:url-encode)]
+
 ; Local words
 authorized-users: twitter-config: twitter-url: settings: users: _
 
@@ -139,8 +142,8 @@ twitter: context bind [
             make object! load system/script/args
         ]
 
-        exists? %twitter-config.reb [
-            make object! load system/script/args
+        exists? %twitter-config.r3 [
+            make object! load %twitter-config.r3
         ]
 
         /else [
