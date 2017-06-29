@@ -1,13 +1,13 @@
-REBOL [
-    Title: "Twitter Client for REBOL"
+Rebol [
+    Title: "Twitter Client for Rebol"
     Date: 10-Jun-2013
-    Author: "Christopher Ross-Gill/John Kenyon"
-    Version: 0.3.6
-    type: module
-    name: twitter
-    exports: [ twitter ]
-    Rights: http://creativecommons.org/licenses/by-nc-sa/2.0/
-    File: %twitter.r3
+    Author: ["Christopher Ross-Gill" "John Kenyon"]
+    Version: 0.3.7
+    ; Type: 'module
+    ; Name: 'rgchris.twitter
+    Exports: [twitter]
+    Rights: http://opensource.org/licenses/Apache-2.0
+    File: %twitter.reb
     Needs: [
         ; http://reb4.me/r3/altwebform
         ; %altwebform.reb
@@ -15,7 +15,7 @@ REBOL [
         ; http://reb4.me/r3/altjson
     ]
     Purpose: {
-        REBOL script to access and use the Twitter OAuth API.
+        Rebol script to access and use the Twitter OAuth API.
         Warning: Currently configured to use HTTP only
         New user registration must be done using rebol 2 version
         This function will be updated when https is available (for Linux)
@@ -30,7 +30,6 @@ authorized-users: twitter-config: twitter-url: settings: users: _
 
 twitter: context bind [
     as: func [
-        [catch]
         "Set current user"
         user [string!] "Twitter user name"
     ][
@@ -44,7 +43,7 @@ twitter: context bind [
                     new-line/skip/all body-of user true 2
                 ]
                 persona/name
-            ][throw :user]
+            ][do :user]
         ]
     ]
 
@@ -65,7 +64,7 @@ twitter: context bind [
     authorized-users: func ["Lists authorized users"][extract users 2] 
 
     find: func [
-        "Tweets by Search" [catch]
+        "Tweets by Search"
         query [string! issue! email!] "Search String"
         /size count [integer!] /page offset [integer!]
     ][ 
@@ -80,24 +79,24 @@ twitter: context bind [
     ]
 
     timeline: func [
-        "Retrieve a User Timeline" [catch]
+        "Retrieve a User Timeline"
         /for user [string!] /size count [integer!] /page offset [integer!]
     ][
         unless persona/name error/credentials
 
         set options reduce [
-            any [user persona/name]
-            all [count min 200 abs count]
-            offset
+            any [:user persona/name _]
+            any [if integer? :count [min 200 abs count] _]
+            any [:offset _]
         ]
 
-        either attempt [
+        either do [
             result: send/with 'get %1.1/statuses/user_timeline.json options
         ] load-result error/connection
     ]
 
     home: friends: func [
-        "Retrieve status messages from friends" [catch]
+        "Retrieve status messages from friends"
         /size count [integer!] /page offset [integer!]
     ][
         unless persona/name error/credentials
@@ -114,46 +113,63 @@ twitter: context bind [
     ]
 
     update: func [
-        "Send Twitter status update" [catch]
+        "Send Twitter status update"
         status [string!] "Status message"
         /reply "As reply to" id [issue!] "Reply reference" /override
     ][
         override: either override [200][140]
         unless persona/name error/credentials
         unless all [0 < length? status override > length? status] error/invalid
-        set message reduce [status id]
-        ;either attempt [
+        set message reduce [
+            status
+            any [:id _]
+        ]
+        ; either attempt [
             result: send/with 'post %1.1/statuses/update.json message
-        ;] load-result error/connection
+        ; ] load-result error/connection
     ]
 
 ] context [ ; internals
-    either exists? %twitter-config.r3 [
-        twitter-config: object load %twitter-config.r3
-        twitter-url: twitter-config/twitter
-        settings: make context [
-            consumer-key: consumer-secret: users: _
-        ] [ 
-            consumer-key: twitter-config/consumer-key
-            consumer-secret: twitter-config/consumer-secret
+    config: case [
+        block? system/script/args [
+            make object! system/script/args
         ]
-        users: twitter-config/users
-    ] [
-        print "No configuration file"
-        halt
+
+        file? system/script/args [
+            make object! load system/script/args
+        ]
+
+        exists? %twitter-config.reb [
+            make object! load system/script/args
+        ]
+
+        /else [
+            do make error! "No Configuration Provided"
+        ]
     ]
 
-    options: context [screen_name: count: page: _]
-    params: context [q: page: rpp: _]
-    message: context [status: in_reply_to_status_id: _]
+    root: config/twitter
+
+    settings: make make object! [
+        consumer-key: consumer-secret: users: _
+    ][
+        consumer-key: config/consumer-key
+        consumer-secret: config/consumer-secret
+    ]
+
+    users: config/users
+
+    options: make object! [screen_name: count: page: _]
+    params: make object! [q: page: rpp: _]
+    message: make object! [status: in_reply_to_status_id: _]
 
     result: _
     load-result: [load-json result]
 
     error: [
-        credentials [throw make error! "User must be authorized to use this application"]
-        connection [throw make error! "Unable to connect to Twitter"]
-        invalid [throw make error! "Status length should be between between 1 and 140"]
+        credentials [do make error! "User must be authorized to use this application"]
+        connection [do make error! "Unable to connect to Twitter"]
+        invalid [do make error! "Status length should be between between 1 and 140"]
     ]
 
     persona: context [
@@ -173,11 +189,11 @@ twitter: context bind [
 
     send: use [make-nonce timestamp sign][
         make-nonce: does [
-            enbase/base checksum/secure to binary! join-of now/precise settings/consumer-key 64
+            enbase/base checksum/secure to binary! join-of form now/precise settings/consumer-key 64
         ]
 
         timestamp: func [/for date [date!]][
-            date: any [date now]
+            date: any [:date now]
             date: form any [
                 attempt [to integer! difference date 1-Jan-1970/0:0:0]
                 date - 1-Jan-1970/0:0:0 * 86400.0
@@ -200,10 +216,17 @@ twitter: context bind [
             oauth/oauth_timestamp: timestamp
             oauth/oauth_token: persona/token
 
-            params: make oauth any [params []]
-            params: sort/skip body-of params 2
+            params: sort/skip unique/skip collect [
+                for-each [key value] body-of make oauth any [:params []][
+                    keep to word! key
+                    keep switch/default type-of value [
+                        issue! [to string! to word! value]
+                    ][
+                        value
+                    ]
+                ]
+            ] 2 2
 
-            forskip params 2 [params/1: to word! params/1 if issue? params/2 [ params/2: to string! to word! params/2 ] ]
             oauth/oauth_signature: enbase/base checksum/secure/key to binary! rejoin [
                 uppercase form method "&" replace/all url-encode form lookup "%5f" "_" "&"
                 replace/all replace/all url-encode replace/all to-webform params "+" "%20" "%5f" "_" "%255F" "_"
@@ -221,14 +244,13 @@ twitter: context bind [
         ]
 
         send: func [
-            [catch]
             method [word!] lookup [file!]
             /auth oauth [object!]
             /with params [object!]
         ][
-            lookup: twitter-url/:lookup
-            oauth: make oauth! any [oauth []]
-            if object? params [params: body-of params ]
+            lookup: join-of dirize root lookup
+            oauth: make oauth! any [:oauth []]
+            if object? :params [params: body-of params ]
 
             switch method [
                 put delete [
