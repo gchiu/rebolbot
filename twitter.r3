@@ -3,8 +3,8 @@ Rebol [
     Date: 10-Jun-2013
     Author: ["Christopher Ross-Gill" "John Kenyon"]
     Version: 0.3.7
-    ; Type: 'module
-    ; Name: 'rgchris.twitter
+    Type: 'module
+    Name: 'rgchris.twitter
     Exports: [twitter]
     Rights: http://opensource.org/licenses/Apache-2.0
     File: %twitter.reb
@@ -22,10 +22,11 @@ Rebol [
     }
 ]
 
+; these need to be imported before the twitter module is imported
 import <webform>
 import <json>
 
-; can't find it otherwise!
+; otherwise, this might be needed
 append lib compose [url-encode: (:url-encode)]
 
 ; Local words
