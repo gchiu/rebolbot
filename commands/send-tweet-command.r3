@@ -16,7 +16,7 @@ twitter-user: "rebolbot"
 
 room-admins: collect [
     attempt [
-        parse to string! read http://chat.stackoverflow.com/rooms/info/291/rebol-and-red?tab=access [
+        parse to string! read https://chat.stackoverflow.com/rooms/info/291/rebol?tab=access [
             thru <div class="access-list">
             some [
                 thru {<a class="username " href="/users/}
