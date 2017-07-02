@@ -4,9 +4,7 @@ Rebol [
     Type: module
     Role: command
     Version: 1.0.0
-    Needs: [
-        %../bot-api.r3 1.0.0
-    ]
+    Needs: [bot-api 1.0.0]
     Options: [private]
 ]
 
