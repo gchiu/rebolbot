@@ -20,7 +20,7 @@ do %bot-api.r3
 import <webform> ; %webform.reb
 import <json>
 import <xml>
-import <twitter>
+;import <twitter>
 
 system/options/default-suffix: %.r3
 command-dir: %commands/
