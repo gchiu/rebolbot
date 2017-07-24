@@ -239,6 +239,73 @@ lib/to-dash: func [ username ][
     ]
     username
 ]
+cookie-jar: make map! []
+
+find-all-cookies: function [
+    {given a cookie string or block, all cookies are returned}
+    cookie-string [string! block!]
+][
+    cookies: copy []
+    if string? cookie-string [
+        tmp: copy []
+        append tmp cookie-string
+        cookie-string: tmp
+    ]
+    exes: ["path=" "MAX-AGE=" "uauth=true" "domain=.stackoverflow.com" "expires=" ".ASPXBrowserOverride="]
+    exclusions?: function [e][
+        for-each element exes [
+            if find e element [
+                return false
+            ]
+        ]
+        true
+    ]
+
+    for-each cookie cookie-string [
+        for-each element split cookie ";" [
+            trim/head/tail element
+            if all [
+                find element "=" 
+                exclusions? element
+            ][
+                append cookies element
+            ]
+        ]
+    ]
+    cookies
+]
+
+update-cookie-jar: procedure [
+    {adds cookies to cookie-jar or updates if present}
+    headers [object!] site [block!]
+][
+    if all [
+        find headers 'set-cookie 
+        cookies: find-all-cookies headers/set-cookie
+        not empty? cookies
+    ][
+        either find cookie-jar site/host [
+            repend cookie-jar [lock site/host cookies]
+        ][
+            lock site/host
+            cookie-jar/(site/host): cookies
+        ]
+    ]
+]        
+
+search-cookie-jar: function [
+    {returns any cookies that match the domain}
+    cookie-jar [map!] domain [string!] 
+][
+    result: collect [
+        for-each [key value] cookie-jar [
+            if find key domain [
+                keep value 
+            ]
+        ]
+    ]
+    delimit result "; "
+]
 
 lib/login2so: function [
     {login to stackoverflow and return an authentication object}
@@ -247,33 +314,38 @@ lib/login2so: function [
     configobj: make object! [fkey: copy "" bot-cookie: copy ""]
     fkey: _
     root: https://stackoverflow.com
-    ; grab the first fkey from the login page
-    print "reading login page"
-    loginpage: to string! read https://stackoverflow.com/users/login
+    loginpage: to string! read loginurl: https://stackoverflow.com/users/login
     print "read ..."
     if parse loginpage [thru "login-form" thru {action="} copy action to {"} thru "fkey" thru {value="} copy fkey to {"} thru {"submit-button"} thru {value="} copy login to {"} to end][
         ; dump action
         postdata: to-webform reduce ['fkey fkey 'email email 'password password 'submit-button login]
         print "posting login data"
-        if error? err2: trap [
-            result: to-string write rejoin [root action] postdata
-        ][
-            net-log "Entering error handler for err2"
-            probe words-of err2
-            cookiejar: reform collect [ for-each cookie err2/arg2/headers/set-cookie [ keep first split cookie " " ] ] ; trim the expires and domain parts
-            parse cookiejar [to "usr=" copy cookiejar to ";"]
-            net-log "now the first GET"
-            result: write chat-page compose/deep [GET [cookie: (cookiejar)]]
-            net-log "after posting *************"
-            result: to string! result
-            parse result [ thru {name="fkey"} thru {value="} copy fkey to {"} to end ]
-            ;dump fkey
+        result: trap [
+            write post-url: to url! unspaced [root action] compose/deep 
+            [headers no-redirect POST [Content-Type: "application/x-www-form-urlencoded; charset=utf-8"] (postdata)]
         ]
-        if blank? fkey [fail "No Fkey so can not login"]
+        ; grab the headers and update the cookie-jar after successful authentication
+        update-cookie-jar headers: result/spec/debug/headers site: sys/decode-url post-url
+
+        ; now grab the SO cookies - we are asked to redirect there but we don't need to as we only need the cookies
+        site: sys/decode-url url: to url! headers/location
+        cookie: search-cookie-jar cookie-jar site/host
+
+        ; now grab the chatroom cookie, "chatusr" but it doesn't seem to be used??
+        result: trap [
+            write chat-page compose/deep [headers no-redirect GET [cookie: (cookie)]]
+        ]
+
+        update-cookie-jar headers: result/spec/debug/headers site: sys/decode-url chat-page 
+        if not parse to string! result/data [ thru {name="fkey"} thru {value="} copy fkey to {"} to end ][
+            fail  "No Fkey so can not login"
+        ]
         configobj/fkey: fkey
-        configobj/bot-cookie: cookiejar
+        ; there's a chat.stackoverflow.com coookie but it wants the stackoverflow.com cookie!
+        ; configobj/bot-cookie: delimit cookie-jar/("stackoverflow.com") "; "
+        configobj/bot-cookie: search-cookie-jar cookie-jar "stackoverflow.com"
     ]
-    configobj
+   configobj
 ]
 
 lib/get-userid: func [ txt
@@ -316,16 +388,15 @@ lib/log: func [text][
     write/append log-file reform [ now/date now/time mold text newline ]
 ]
 
-lib/speak: function [message ] [
+lib/speak: func [message /local err] [
     if error? err: trap [
-        to string! write chat-target-url compose/deep copy/deep [
-            POST
+        write chat-target-url compose/deep copy/deep [
+            headers no-redirect POST
             [(header)]
-            (rejoin ["text=" lib/url-encode message "&fkey=" auth-object/fkey])
+            (rejoin ["text=" url-encode message "&fkey=" auth-object/fkey])
         ]
-        done: true
-    ] [
-        mold err
+    ][
+        probe err
     ]
 ]
 
@@ -557,7 +628,7 @@ header: compose [
     Origin: "http://chat.stackoverflow.com"
     Accept: "application/json, text/javascript, */*; q=0.01"
     X-Requested-With: "XMLHttpRequest"
-    Referer: (lib/referrer-url)
+    Referer: (referrer-url)
     Accept-Encoding: "gzip,deflate"
     Accept-Language: "en-US"
     Accept-Charset: "ISO-8859-1,utf-8;q=0.7,*;q=0.3"
