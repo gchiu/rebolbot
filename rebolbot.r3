@@ -20,7 +20,7 @@ do %bot-api.r3
 import <webform> ; %webform.reb
 import <json>
 import <xml>
-import <twitter>
+;import <twitter>
 
 system/options/default-suffix: %.r3
 command-dir: %commands/
@@ -28,7 +28,7 @@ command-dir: %commands/
 sync-commands: func [ /local cmd-header err ] [
     lib/commands: copy []
     for-each command read command-dir [
-        if error? err: trap [ 
+        if error? err: trap [
             if all [
                 system/options/default-suffix = suffix? command
                 cmd-header: load/header join-of command-dir command
@@ -72,7 +72,7 @@ either exists? %bot-config.r [
     log-file: bot-config/log-file
 ] [
     lib/botname: "-- name me --"
-    room-id: 0 
+    room-id: 0
     room-descriptor: "-- room name --"
     lib/greet-message: "-- set my welcome message --"
     lib/low-rep-message: "-- set my low reputation message --"
@@ -131,7 +131,7 @@ lib/id-rule: charset [#"0" - #"9"]
 non-space: complement space: charset #" "
 
 lib/unix-to-date: func [ unix [string! integer!]
-    /local days d 
+    /local days d
 ][
     if string? unix [ unix: to integer! unix ]
     days: unix / 24 / 60 / 60
@@ -147,7 +147,7 @@ lib/from-now: func [ d [date!]][
         d + 1 < now [ join-of now - d " days ago" ]
         d + 1:00 < now [ join-of  to integer! divide difference now d 1:00 " hours ago" ]
         d + 0:1:00 < now [ join-of to integer! divide difference now d 0:1:00 " minutes ago" ]
-        true [ join-of to integer! divide now/time - d/time 0:0:1 " seconds ago" ] 
+        true [ join-of to integer! divide now/time - d/time 0:0:1 " seconds ago" ]
     ]
 ]
 
@@ -216,16 +216,16 @@ lib/to-idate: func [
 lib/to-markdown-code: func [ txt /local out something ][
     quadspace: "    "
     out: copy "" ; copy quadspace
-    parse txt [ 
-            some [ 
-                copy something to newline newline ( 
+    parse txt [
+            some [
+                copy something to newline newline (
                     append out join-of quadspace something
-                    append out newline 
+                    append out newline
                 )
                 |
-                copy something to end ( 
+                copy something to end (
                     append out quadspace
-                    append out something 
+                    append out something
                 )
             ]
         ]
@@ -239,6 +239,73 @@ lib/to-dash: func [ username ][
     ]
     username
 ]
+cookie-jar: make map! []
+
+find-all-cookies: function [
+    {given a cookie string or block, all cookies are returned}
+    cookie-string [string! block!]
+][
+    cookies: copy []
+    if string? cookie-string [
+        tmp: copy []
+        append tmp cookie-string
+        cookie-string: tmp
+    ]
+    exes: ["path=" "MAX-AGE=" "uauth=true" "domain=.stackoverflow.com" "expires=" ".ASPXBrowserOverride="]
+    exclusions?: function [e][
+        for-each element exes [
+            if find e element [
+                return false
+            ]
+        ]
+        true
+    ]
+
+    for-each cookie cookie-string [
+        for-each element split cookie ";" [
+            trim/head/tail element
+            if all [
+                find element "="
+                exclusions? element
+            ][
+                append cookies element
+            ]
+        ]
+    ]
+    cookies
+]
+
+update-cookie-jar: procedure [
+    {adds cookies to cookie-jar or updates if present}
+    headers [object!] site [block!]
+][
+    if all [
+        find headers 'set-cookie
+        cookies: find-all-cookies headers/set-cookie
+        not empty? cookies
+    ][
+        either find cookie-jar site/host [
+            repend cookie-jar [lock site/host cookies]
+        ][
+            lock site/host
+            cookie-jar/(site/host): cookies
+        ]
+    ]
+]
+
+search-cookie-jar: function [
+    {returns any cookies that match the domain}
+    cookie-jar [map!] domain [string!]
+][
+    result: collect [
+        for-each [key value] cookie-jar [
+            if find key domain [
+                keep value
+            ]
+        ]
+    ]
+    delimit result "; "
+]
 
 lib/login2so: function [
     {login to stackoverflow and return an authentication object}
@@ -247,50 +314,54 @@ lib/login2so: function [
     configobj: make object! [fkey: copy "" bot-cookie: copy ""]
     fkey: _
     root: https://stackoverflow.com
-    ; grab the first fkey from the login page
-    print "reading login page"
-    loginpage: to string! read https://stackoverflow.com/users/login
+    loginpage: to string! read loginurl: https://stackoverflow.com/users/login
     print "read ..."
     if parse loginpage [thru "login-form" thru {action="} copy action to {"} thru "fkey" thru {value="} copy fkey to {"} thru {"submit-button"} thru {value="} copy login to {"} to end][
         ; dump action
         postdata: to-webform reduce ['fkey fkey 'email email 'password password 'submit-button login]
         print "posting login data"
-        if error? err2: trap [
-            result: to-string write rejoin [root action] postdata
-        ][
-            net-log "Entering error handler for err2"
-            probe words-of err2
-            cookiejar: reform collect [ for-each cookie err2/arg2/headers/set-cookie [ keep first split cookie " " ] ] ; trim the expires and domain parts
-            parse cookiejar [to "usr=" copy cookiejar to ";"]
-            net-log "now the first GET"
-            result: write chat-page compose/deep [GET [cookie: (cookiejar)]]
-            net-log "after posting *************"
-            result: to string! result
-            parse result [ thru {name="fkey"} thru {value="} copy fkey to {"} to end ]
-            ;dump fkey
+        result: trap [
+            write post-url: to url! unspaced [root action] compose/deep
+            [headers no-redirect POST [Content-Type: "application/x-www-form-urlencoded; charset=utf-8"] (postdata)]
         ]
-        if blank? fkey [fail "No Fkey so can not login"]
-        configobj/fkey: fkey
-        configobj/bot-cookie: cookiejar
-    ]
-    configobj
-]
+        ; grab the headers and update the cookie-jar after successful authentication
+        update-cookie-jar headers: result/spec/debug/headers site: sys/decode-url post-url
 
+        ; now grab the SO cookies - we are asked to redirect there but we don't need to as we only need the cookies
+        site: sys/decode-url url: to url! headers/location
+        cookie: search-cookie-jar cookie-jar site/host
+
+        ; now grab the chatroom cookie, "chatusr" but it doesn't seem to be used??
+        result: trap [
+            write chat-page compose/deep [headers no-redirect GET [cookie: (cookie)]]
+        ]
+
+        update-cookie-jar headers: result/spec/debug/headers site: sys/decode-url chat-page
+        if not parse to string! result/data [ thru {name="fkey"} thru {value="} copy fkey to {"} to end ][
+            fail  "No Fkey so can not login"
+        ]
+        configobj/fkey: fkey
+        ; there's a chat.stackoverflow.com coookie but it wants the stackoverflow.com cookie!
+        ; configobj/bot-cookie: delimit cookie-jar/("stackoverflow.com") "; "
+        configobj/bot-cookie: search-cookie-jar cookie-jar "stackoverflow.com"
+    ]
+   configobj
+]
 lib/get-userid: func [ txt
     /local page userid err rule
 ][
     userid: err: _
     txt: copy ajoin [ {("} txt {")} ]
-    rule: [ 
+    rule: [
             thru "update_user("
-            thru txt thru "chat.sidebar.loadUser(" 
+            thru txt thru "chat.sidebar.loadUser("
             copy userid digits (
-                userid: to integer! userid 
+                userid: to integer! userid
                 ; avoid anti-flooding
                 ; ?? userid
                 wait 2
-            ) 
-            to end 
+            )
+            to end
     ]
     if error? err: trap [
         page: to string! read html-url
@@ -316,16 +387,15 @@ lib/log: func [text][
     write/append log-file reform [ now/date now/time mold text newline ]
 ]
 
-lib/speak: function [message ] [
+lib/speak: func [message /local err] [
     if error? err: trap [
-        to string! write chat-target-url compose/deep copy/deep [
-            POST
+        write chat-target-url compose/deep copy/deep [
+            headers no-redirect POST
             [(header)]
             (rejoin ["text=" lib/url-encode message "&fkey=" auth-object/fkey])
         ]
-        done: true
-    ] [
-        mold err
+    ][
+        probe err
     ]
 ]
 
@@ -342,7 +412,7 @@ Content-Type: text/plain; charset=UTF-8
 Set-Cookie: $cookies
 $code}
 
-    url-obj: construct/with sys/decode-url url make object! copy [port-id: 80 path: ""] 
+    url-obj: construct/with sys/decode-url url make object! copy [port-id: 80 path: ""]
     if empty? url-obj/path [ url-obj/path: copy "/" ]
     payload: reword http-request reduce [
         'method method
@@ -439,7 +509,7 @@ process-dialect: func [expression
         ] [
             if all [
                 in err2 'arg1
-                in err2 'arg2 
+                in err2 'arg2
                 "email" = get in err2 'arg1
             ][
                 replace/all expression "@" ""
@@ -491,7 +561,7 @@ process-key-search: func [expression
 ]
 
 bot-cmd-rule: [
-    [   
+    [
         lib/botname some space
         copy key to end (print "got key")
         |
@@ -508,7 +578,7 @@ bot-cmd-rule: [
         print "completed rules"
         replace/all key <br> newline trim key
         dump key
-        if not empty? key [ 
+        if not empty? key [
             print "processing dialect-rule"
             process-dialect key
         ]
@@ -531,10 +601,10 @@ message-rule: [
     end
     (
         lib/timestamp: timestamp
-        lib/person-id: person-id 
-        lib/user-name: user-name 
-        lib/message-id: message-id 
-        lib/parent-id: parent-id 
+        lib/person-id: person-id
+        lib/user-name: user-name
+        lib/message-id: message-id
+        lib/parent-id: parent-id
     )
 ]
 
@@ -542,7 +612,7 @@ call-command-pulse: function [] [
     for-each command lib/commands [
         if all [
             callback: find words-of command 'pulse-callback
-            function? :callback 
+            function? :callback
         ] [command/pulse-callback]
     ]
 ]
@@ -557,7 +627,7 @@ header: compose [
     Origin: "http://chat.stackoverflow.com"
     Accept: "application/json, text/javascript, */*; q=0.01"
     X-Requested-With: "XMLHttpRequest"
-    Referer: (lib/referrer-url)
+    Referer: (referrer-url)
     Accept-Encoding: "gzip,deflate"
     Accept-Language: "en-US"
     Accept-Charset: "ISO-8859-1,utf-8;q=0.7,*;q=0.3"
@@ -565,15 +635,15 @@ header: compose [
     cookie: (auth-object/bot-cookie)
 ]
 
-cnt: 0 ; rescan for new users every 10 iterations ( for 5 seconds, that's 50 seconds )
-bot-message-cnt: 0 ; stop the bot monopolising the room
+cnt: copy 0 ; rescan for new users every 10 iterations ( for 5 seconds, that's 50 seconds )
+bot-message-cnt: copy 0 ; stop the bot monopolising the room
 
 ; test speak
 lib/speak "Hi guys, I'm back again"
 
 ; eval loop
 forever [
-    ++ cnt
+    cnt: cnt + 1
     if error? errmain: trap [
         result: load-json/flat lib/read-messages lib/no-of-messages
         messages: result/2
@@ -603,25 +673,25 @@ msg: => [
                 content: copy ""
             ]
             if all [
-                lib/timestamp < lib/two-minutes-ago 
+                lib/timestamp < lib/two-minutes-ago
                 not exists? join-of lib/storage lib/message-id
             ][
                 ; print [ "saving " lib/message-id ]
                 write join-of lib/storage lib/message-id to-json msg
             ]
             ; failsafe counter
-            if equal? remove copy bot-config/botname lib/user-name [ ++ bot-message-cnt ]
+            if equal? remove copy bot-config/botname lib/user-name [ bot-message-cnt: bot-message-cnt + 1 ]
             if bot-message-cnt > 5 [ quit/with 42 ] ; if the last 8 messages were by the bot then die
 
             ; new message?
             changed: false
             if any [
                 ; new directive
-                lib/message-id > lastmessage-no 
+                lib/message-id > lastmessage-no
                 ; old directive now edited changed
                 all [
                     ; we found this order before
-                    something? changed: find orders-cache lib/message-id ; none | series  
+                    something? changed: find orders-cache lib/message-id ; none | series
                     content <> select orders-cache first changed
                 ]
             ][  ; only gets here if a new order, or, if an old order that was updated
