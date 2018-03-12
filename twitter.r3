@@ -1,38 +1,25 @@
 Rebol [
     Title: "Twitter Client for Rebol"
-    Date: 10-Jun-2013
     Author: ["Christopher Ross-Gill" "John Kenyon"]
-    Version: 0.3.7
-    Type: 'module
-    Name: 'rgchris.twitter
-    Exports: [twitter]
-    Rights: http://opensource.org/licenses/Apache-2.0
+    Date: 10-Jun-2013
+    Home: http://ross-gill.com/page/Twitter_API_and_Rebol
     File: %twitter.reb
-    Needs: [
-        ; http://reb4.me/r3/altwebform
-        ; %altwebform.reb
-        ; https://raw.githubusercontent.com/r3n/renclib/master/modules/json.reb
-        ; http://reb4.me/r3/altjson
-    ]
+    Version: 0.3.8
     Purpose: {
         Rebol script to access and use the Twitter OAuth API.
         Warning: Currently configured to use HTTP only
         New user registration must be done using rebol 2 version
         This function will be updated when https is available (for Linux)
     }
+    Rights: http://opensource.org/licenses/Apache-2.0
+    Type: module
+    Name: rgchris.twitter
+    Exports: [twitter]
+    Needs: [<webform> <json>]
+    History: []
 ]
 
-; these need to be imported before the twitter module is imported
-import <webform>
-import <json>
-
-; otherwise, this might be needed
-append lib compose [url-encode: (:url-encode)]
-
-; Local words
-authorized-users: twitter-config: twitter-url: settings: users: _
-
-twitter: context bind [
+twitter: make object! bind [
     as: func [
         "Set current user"
         user [string!] "Twitter user name"
@@ -76,7 +63,7 @@ twitter: context bind [
             issue? query [query: mold query]
             email? query [query: join-of "@" query/host]
         ]
-        set params reduce [query offset count]
+        set words-of params reduce [query offset count]
         either attempt [
             result: to string! read join-of http://search.twitter.com/search.json? to-webform params
         ] load-result error/connection
@@ -88,7 +75,7 @@ twitter: context bind [
     ][
         unless persona/name error/credentials
 
-        set options reduce [
+        set words-of options reduce [
             any [:user persona/name _]
             any [if integer? :count [min 200 abs count] _]
             any [:offset _]
@@ -105,7 +92,7 @@ twitter: context bind [
     ][
         unless persona/name error/credentials
 
-        set options reduce [
+        set words-of options reduce [
             _
             all [count min 200 abs count]
             offset
@@ -124,16 +111,16 @@ twitter: context bind [
         override: either override [200][140]
         unless persona/name error/credentials
         unless all [0 < length? status override > length? status] error/invalid
-        set message reduce [
+        set words-of message reduce [
             status
             any [:id _]
         ]
-        ; either attempt [
+        either attempt [
             result: send/with 'post %1.1/statuses/update.json message
-        ; ] load-result error/connection
+        ] load-result error/connection
     ]
 
-] context [ ; internals
+] make object! [ ; internals
     config: case [
         block? system/script/args [
             make object! system/script/args
@@ -143,8 +130,8 @@ twitter: context bind [
             make object! load system/script/args
         ]
 
-        exists? %twitter-config.r3 [
-            make object! load %twitter-config.r3
+        exists? %twitter.config.reb [
+            make object! load %twitter.config.reb
         ]
 
         /else [
@@ -155,7 +142,7 @@ twitter: context bind [
     root: config/twitter
 
     settings: make make object! [
-        consumer-key: consumer-secret: users: _
+        twitter: consumer-key: consumer-secret: users: _
     ][
         consumer-key: config/consumer-key
         consumer-secret: config/consumer-secret
@@ -297,7 +284,7 @@ twitter: context bind [
             /local response verifier
         ][
             request: any [:request :ask]
-            set persona _
+            set words-of persona _
 
             response: load-webform send/auth 'post request-broker make oauth! [
                 oauth_callback: "oob"
